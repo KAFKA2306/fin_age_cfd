@@ -1,3 +1,22 @@
-*.venv*
-*output*
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
 
+# Runtime outputs and secrets
+output/
+.runtime/
+*.log
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
