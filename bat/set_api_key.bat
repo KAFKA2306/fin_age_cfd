@@ -1,24 +1,18 @@
 @echo off
 setlocal
 
-REM Check if API key is already set
-if defined FINAGE_API_KEY (
-  echo API key is already set.
-  goto :eof
+echo This script sets FINAGE_API_KEY only for this process.
+echo The value is not persisted system-wide and is not written to disk.
+set /p FINAGE_API_KEY="Enter Finage API key: "
+
+if not defined FINAGE_API_KEY (
+  echo FINAGE_API_KEY was not provided.
+  exit /b 1
 )
 
-REM Prompt for API key and secret key
-set /p API_KEY="Enter API key: "
-set /p SECRET_KEY="Enter secret key: "
-
-REM Set API key in environment variables (temporary)
-set FINAGE_API_KEY=%API_KEY%
-set FINAGE_SECRET_KEY=%SECRET_KEY%
-
-REM Set API key in environment variables (permanent)
-setx FINAGE_API_KEY "%API_KEY%" /M
-setx FINAGE_SECRET_KEY "%SECRET_KEY%" /M
-
-echo API key has been set.
-
+set "FINAGE_API_KEY=%FINAGE_API_KEY%"
+echo FINAGE_API_KEY is available only inside this script process.
+echo Start the application from this script or set the variable in your current shell.
+python "%~dp0..\src\main.py"
+set "FINAGE_API_KEY="
 endlocal

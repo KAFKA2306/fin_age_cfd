@@ -1,31 +1,28 @@
-import os
-import glob
-import pandas as pd
-import config
-from IPython.display import display
+"""Inspect generated parquet files without notebook-only dependencies."""
 
-def display_parquet_files():
+from __future__ import annotations
+
+import pandas as pd
+
+import config
+
+
+def display_parquet_files() -> None:
+    found = False
     for data_type in config.DATA_TYPES:
-        if data_type == "combined_data":
-            data_type_dir = os.path.join(config.OUTPUT_DIR, data_type)
-        else:
-            data_type_dir = os.path.join(config.OUTPUT_DIR, data_type)
-        parquet_files = glob.glob(os.path.join(data_type_dir, "*.parquet"))
-        parquet_files.sort()  # ファイルを順番に表示するためにソート
-    
-    file_path = None  # file_pathを初期化
-    if not parquet_files:
-        print("parquetファイルが見つかりませんでした。")
-    else:
-        for file_path in parquet_files:
+        data_type_dir = config.OUTPUT_DIR / data_type
+        for file_path in sorted(data_type_dir.glob("*.parquet")):
+            found = True
             print(f"ファイル: {file_path}")
             try:
-                df = pd.read_parquet(file_path)
-                display(df)
-            except Exception as e:
-                print(f"エラー: {file_path} の読み込みに失敗しました: {e}")
+                frame = pd.read_parquet(file_path)
+                print(frame.to_string())
+            except (OSError, ValueError) as exc:
+                print(f"エラー: {file_path} の読み込みに失敗しました: {exc}")
 
-        pass
+    if not found:
+        print("parquetファイルが見つかりませんでした。")
+
 
 if __name__ == "__main__":
     display_parquet_files()
