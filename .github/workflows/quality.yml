@@ -17,16 +17,25 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - name: Install
-        run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
+          cache-dependency-path: requirements.lock
+      - name: Install locked dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.lock
+          python -m pip install --no-deps -e .
       - name: Ruff
         run: ruff check src tests
       - name: Tests
         run: pytest -q
-      - name: Reject tracked runtime artifacts
+      - name: Reject tracked runtime artifacts and unsafe host configuration
         shell: bash
         run: |
           if git ls-files | grep -E '(^|/)(\.venv|venv|__pycache__)(/|$)|\.pyc$|\.log$'; then
             echo 'Tracked runtime artifacts remain in the repository.' >&2
             exit 1
           fi
+          if grep -RInE --exclude-dir=.git --exclude='*.ipynb' 'setx[^\r\n]*/M|[A-Za-z]:\\\\' src bat tests; then
+            echo 'System-wide environment persistence or Windows absolute path remains.' >&2
+            exit 1
+          fi
+          test -s requirements.lock
