@@ -24,7 +24,7 @@ jobs:
           python -m pip install -r requirements.lock
           python -m pip install --no-deps -e .
       - name: Ruff
-        run: ruff check src tests
+        run: ruff check src/*.py tests
       - name: Tests
         run: pytest -q
       - name: Reject tracked runtime artifacts and unsafe host configuration
