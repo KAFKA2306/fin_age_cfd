@@ -43,7 +43,12 @@ def configure_logging() -> None:
     )
 
 
-def get_last_price(asset_type: str, symbol: str, *, timeout_seconds: float = 20.0) -> dict[str, Any]:
+def get_last_price(
+    asset_type: str,
+    symbol: str,
+    *,
+    timeout_seconds: float = 20.0,
+) -> dict[str, Any]:
     api_key = config.require_api_key()
     url = FinageEndpoints.last_price(asset_type, symbol)
     try:
