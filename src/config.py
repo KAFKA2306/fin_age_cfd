@@ -6,8 +6,12 @@ import os
 from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-OUTPUT_DIR = Path(os.getenv("FINAGE_OUTPUT_DIR", REPOSITORY_ROOT / "output")).expanduser().resolve()
-LOG_DIR = Path(os.getenv("FINAGE_LOG_DIR", REPOSITORY_ROOT / ".runtime" / "logs")).expanduser().resolve()
+OUTPUT_DIR = Path(
+    os.getenv("FINAGE_OUTPUT_DIR", REPOSITORY_ROOT / "output")
+).expanduser().resolve()
+LOG_DIR = Path(
+    os.getenv("FINAGE_LOG_DIR", REPOSITORY_ROOT / ".runtime" / "logs")
+).expanduser().resolve()
 BASE_URL = os.getenv("FINAGE_BASE_URL", "https://api.finage.co.uk").rstrip("/")
 API_KEY = os.getenv("FINAGE_API_KEY")
 
@@ -33,6 +37,7 @@ def require_api_key() -> str:
     """Return the API key or fail closed with a remediation message."""
     if not API_KEY:
         raise RuntimeError(
-            "FINAGE_API_KEY is not set. Set it only for the current shell or use a local secret manager."
+            "FINAGE_API_KEY is not set. Set it only for the current shell "
+            "or use a local secret manager."
         )
     return API_KEY
