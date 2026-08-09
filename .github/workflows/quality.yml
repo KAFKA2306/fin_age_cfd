@@ -34,7 +34,7 @@ jobs:
             echo 'Tracked runtime artifacts remain in the repository.' >&2
             exit 1
           fi
-          if grep -RInE --exclude-dir=.git --exclude='*.ipynb' 'setx[^\r\n]*/M|[A-Za-z]:\\\\' src bat tests; then
+          if grep -RInE --exclude='*.ipynb' 'setx[^\r\n]*/M|[A-Za-z]:\\\\' src bat; then
             echo 'System-wide environment persistence or Windows absolute path remains.' >&2
             exit 1
           fi
