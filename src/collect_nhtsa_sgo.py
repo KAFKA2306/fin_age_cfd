@@ -7,15 +7,21 @@ import csv
 import hashlib
 import io
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from urllib.request import Request, urlopen
 
 SOURCE_PAGE = "https://www.nhtsa.gov/es/node/103486"
 DOWNLOADS = {
     "ads": "https://static.nhtsa.gov/odi/ffdd/sgo-2021-01/SGO-2021-01_Incident_Reports_ADS.csv",
-    "level_2_adas": "https://static.nhtsa.gov/odi/ffdd/sgo-2021-01/SGO-2021-01_Incident_Reports_ADAS.csv",
-    "other": "https://static.nhtsa.gov/odi/ffdd/sgo-2021-01/SGO-2021-01_Incident_Reports_OTHER.csv",
+    "level_2_adas": (
+        "https://static.nhtsa.gov/odi/ffdd/sgo-2021-01/"
+        "SGO-2021-01_Incident_Reports_ADAS.csv"
+    ),
+    "other": (
+        "https://static.nhtsa.gov/odi/ffdd/sgo-2021-01/"
+        "SGO-2021-01_Incident_Reports_OTHER.csv"
+    ),
 }
 
 
@@ -55,7 +61,7 @@ def collect() -> dict[str, object]:
         "schema_version": 1,
         "publisher": "National Highway Traffic Safety Administration",
         "dataset": "Standing General Order incident reports",
-        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        "retrieved_at": datetime.now(UTC).isoformat(),
         "source_page": SOURCE_PAGE,
         "datasets": datasets,
     }
@@ -67,7 +73,8 @@ def main() -> None:
     args = parser.parse_args()
     result = collect()
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    text = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
+    args.output.write_text(text, encoding="utf-8")
     print(f"indexed {len(result['datasets'])} NHTSA SGO datasets -> {args.output}")
 
 
