@@ -1,4 +1,4 @@
-from src.collect_nhtsa_sgo import DOWNLOADS, csv_inventory
+from collect_nhtsa_sgo import DOWNLOADS, csv_inventory
 
 
 def test_download_registry_keeps_ads_and_level2_separate():
