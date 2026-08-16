@@ -20,7 +20,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Unit boundary
-        run: python -c "from tests import test_nhtsa_sgo as t; t.test_discover_downloads_keeps_ads_and_level2_separate()"
+      - name: Unit boundaries
+        run: |
+          python -c "from tests import test_nhtsa_sgo as t; t.test_download_registry_keeps_ads_and_level2_separate()"
+          python -c "from tests import test_nhtsa_sgo as t; t.test_csv_inventory_requires_real_rows()"
       - name: Fetch current NHTSA CSV manifests
         run: python src/collect_nhtsa_sgo.py --output /tmp/sgo-manifest.json
