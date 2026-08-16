@@ -1,13 +1,15 @@
-from src.collect_nhtsa_sgo import discover_downloads
+from src.collect_nhtsa_sgo import DOWNLOADS, csv_inventory
 
 
-def test_discover_downloads_keeps_ads_and_level2_separate():
-    html = b'''<html><body>
-    <a href="/files/ads.csv">ADS Incident Report Data</a>
-    <a href="/files/l2.csv">Level 2 ADAS Incident Report Data</a>
-    <a href="/files/other.csv">Other Incident Report Data</a>
-    </body></html>'''
-    found = discover_downloads(html)
-    assert set(found) == {"ads", "level_2_adas", "other"}
-    assert found["ads"].endswith("/files/ads.csv")
-    assert found["level_2_adas"].endswith("/files/l2.csv")
+def test_download_registry_keeps_ads_and_level2_separate():
+    assert set(DOWNLOADS) == {"ads", "level_2_adas", "other"}
+    assert DOWNLOADS["ads"].endswith("_ADS.csv")
+    assert DOWNLOADS["level_2_adas"].endswith("_ADAS.csv")
+    assert DOWNLOADS["other"].endswith("_OTHER.csv")
+
+
+def test_csv_inventory_requires_real_rows():
+    result = csv_inventory(b"Report ID,Report Version\n1,2\n")
+    assert result["rows"] == 1
+    assert result["columns"] == ["Report ID", "Report Version"]
+    assert len(result["sha256"]) == 64
