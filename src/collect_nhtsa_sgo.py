@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Discover and snapshot NHTSA Standing General Order incident CSVs."""
+"""Snapshot NHTSA Standing General Order incident CSVs."""
 from __future__ import annotations
 
 import argparse
@@ -8,66 +8,27 @@ import hashlib
 import io
 import json
 from datetime import datetime, timezone
-from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
-PAGE = "https://www.nhtsa.gov/es/node/103486"
-
-
-class LinkParser(HTMLParser):
-    def __init__(self) -> None:
-        super().__init__()
-        self.links: list[tuple[str, str]] = []
-        self.href: str | None = None
-        self.text: list[str] = []
-
-    def handle_starttag(self, tag: str, attrs) -> None:
-        if tag.lower() == "a":
-            self.href = dict(attrs).get("href")
-            self.text = []
-
-    def handle_data(self, data: str) -> None:
-        if self.href is not None:
-            self.text.append(data)
-
-    def handle_endtag(self, tag: str) -> None:
-        if tag.lower() == "a" and self.href is not None:
-            self.links.append((" ".join(" ".join(self.text).split()), self.href))
-            self.href = None
-            self.text = []
+SOURCE_PAGE = "https://www.nhtsa.gov/es/node/103486"
+DOWNLOADS = {
+    "ads": "https://static.nhtsa.gov/odi/ffdd/sgo-2021-01/SGO-2021-01_Incident_Reports_ADS.csv",
+    "level_2_adas": "https://static.nhtsa.gov/odi/ffdd/sgo-2021-01/SGO-2021-01_Incident_Reports_ADAS.csv",
+    "other": "https://static.nhtsa.gov/odi/ffdd/sgo-2021-01/SGO-2021-01_Incident_Reports_OTHER.csv",
+}
 
 
 def fetch(url: str) -> bytes:
-    req = Request(url, headers={"User-Agent": "autonomous-vehicles/1.0 github.com/KAFKA2306/autonomous-vehicles"})
+    req = Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 autonomous-vehicles/1.0",
+            "Accept": "text/csv,*/*;q=0.8",
+        },
+    )
     with urlopen(req, timeout=60) as response:
         return response.read()
-
-
-def classify(label: str) -> str | None:
-    lowered = label.lower()
-    if "level 2 adas" in lowered:
-        return "level_2_adas"
-    if "ads incident" in lowered:
-        return "ads"
-    if "other incident" in lowered:
-        return "other"
-    return None
-
-
-def discover_downloads(page_html: bytes) -> dict[str, str]:
-    parser = LinkParser()
-    parser.feed(page_html.decode("utf-8", errors="replace"))
-    found: dict[str, str] = {}
-    for label, href in parser.links:
-        category = classify(label)
-        if category and ("csv" in href.lower() or "download" in href.lower()):
-            found[category] = urljoin(PAGE, href)
-    missing = {"ads", "level_2_adas", "other"} - found.keys()
-    if missing:
-        raise ValueError(f"NHTSA SGO download links missing: {sorted(missing)}")
-    return found
 
 
 def csv_inventory(raw: bytes) -> dict[str, object]:
@@ -77,14 +38,17 @@ def csv_inventory(raw: bytes) -> dict[str, object]:
     rows = sum(1 for _ in reader)
     if not columns or rows == 0:
         raise ValueError("downloaded NHTSA CSV is empty")
-    return {"columns": columns, "rows": rows, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+    return {
+        "columns": columns,
+        "rows": rows,
+        "bytes": len(raw),
+        "sha256": hashlib.sha256(raw).hexdigest(),
+    }
 
 
 def collect() -> dict[str, object]:
-    page_raw = fetch(PAGE)
-    downloads = discover_downloads(page_raw)
     datasets = []
-    for category, url in sorted(downloads.items()):
+    for category, url in DOWNLOADS.items():
         raw = fetch(url)
         datasets.append({"category": category, "url": url, **csv_inventory(raw)})
     return {
@@ -92,8 +56,7 @@ def collect() -> dict[str, object]:
         "publisher": "National Highway Traffic Safety Administration",
         "dataset": "Standing General Order incident reports",
         "retrieved_at": datetime.now(timezone.utc).isoformat(),
-        "source_page": PAGE,
-        "source_page_sha256": hashlib.sha256(page_raw).hexdigest(),
+        "source_page": SOURCE_PAGE,
         "datasets": datasets,
     }
 
