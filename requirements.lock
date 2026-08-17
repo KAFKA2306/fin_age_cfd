@@ -1,22 +1,9 @@
-# Reproducible CI/runtime dependency snapshot.
-# Runtime versions are pinned to the last tracked environment observed before .venv removal.
-# Development pins are intentionally explicit so CI does not float within pyproject ranges.
+# Dependencies used by GitHub Actions quality checks.
+# Runtime collection uses only the Python standard library.
 
-certifi==2025.1.31
-charset-normalizer==3.4.1
-idna==3.10
 iniconfig==2.0.0
-numpy==2.2.4
 packaging==24.2
-pandas==2.2.3
 pluggy==1.5.0
-pyarrow==19.0.1
 Pygments==2.19.1
 pytest==8.3.5
-python-dateutil==2.9.0.post0
-pytz==2025.2
-requests==2.32.3
 ruff==0.9.10
-six==1.17.0
-tzdata==2025.2
-urllib3==2.4.0
