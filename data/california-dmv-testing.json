@@ -3,6 +3,33 @@
   "publisher": "California Department of Motor Vehicles",
   "observations": [
     {
+      "period_start": "2022-12-01",
+      "period_end": "2023-11-30",
+      "metric": "public_road_testing_miles",
+      "value": 9068861,
+      "unit": "miles",
+      "scope": "all_testing_permit_holders",
+      "source_url": "https://www.dmv.ca.gov/portal/news-and-media/news-releases/autonomous-vehicle-permit-holders-report-a-record-9-million-test-miles-in-california-in-12-months/"
+    },
+    {
+      "period_start": "2022-12-01",
+      "period_end": "2023-11-30",
+      "metric": "safety_driver_testing_miles",
+      "value": 5801069,
+      "unit": "miles",
+      "scope": "all_testing_permit_holders",
+      "source_url": "https://www.dmv.ca.gov/portal/news-and-media/news-releases/autonomous-vehicle-permit-holders-report-a-record-9-million-test-miles-in-california-in-12-months/"
+    },
+    {
+      "period_start": "2022-12-01",
+      "period_end": "2023-11-30",
+      "metric": "driverless_testing_miles",
+      "value": 3267792,
+      "unit": "miles",
+      "scope": "all_testing_permit_holders",
+      "source_url": "https://www.dmv.ca.gov/portal/news-and-media/news-releases/autonomous-vehicle-permit-holders-report-a-record-9-million-test-miles-in-california-in-12-months/"
+    },
+    {
       "period_start": "2023-12-01",
       "period_end": "2024-11-30",
       "metric": "public_road_testing_miles",
