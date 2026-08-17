@@ -25,7 +25,7 @@ def test_california_dmv_permit_snapshot() -> None:
     assert len(categories["deployment"]["holders"]) == 3
 
 
-def test_california_dmv_testing_miles_preserve_qualifier() -> None:
+def test_california_dmv_testing_history() -> None:
     payload = load_json("data/california-dmv-testing.json")
     observations = payload["observations"]
     assert all(
@@ -33,10 +33,21 @@ def test_california_dmv_testing_miles_preserve_qualifier() -> None:
         for item in observations
     )
 
-    latest = observations[-1]
-    assert latest["period_start"] == "2024-12-01"
-    assert latest["period_end"] == "2025-11-30"
-    assert latest["metric"] == "public_road_testing_miles"
-    assert latest["value"] == 9_000_000
+    totals = [item for item in observations if item["metric"] == "public_road_testing_miles"]
+    assert [(item["period_start"], item["period_end"], item["value"]) for item in totals] == [
+        ("2022-12-01", "2023-11-30", 9_068_861),
+        ("2023-12-01", "2024-11-30", 4_498_066),
+        ("2024-12-01", "2025-11-30", 9_000_000),
+    ]
+
+    latest = totals[-1]
     assert latest["qualifier"] == "greater_than"
     assert latest["unit"] == "miles"
+
+    first_period = [item for item in observations if item["period_start"] == "2022-12-01"]
+    metrics = {item["metric"]: item["value"] for item in first_period}
+    assert metrics == {
+        "public_road_testing_miles": 9_068_861,
+        "safety_driver_testing_miles": 5_801_069,
+        "driverless_testing_miles": 3_267_792,
+    }
