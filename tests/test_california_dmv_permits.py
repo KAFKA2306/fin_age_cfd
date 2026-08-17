@@ -1,8 +1,8 @@
 import json
-from pathlib import Path
+import pathlib
 
 
-DATA_PATH = Path("data/california-dmv-permits-2026-05-08.json")
+DATA_PATH = pathlib.Path("data/california-dmv-permits-2026-05-08.json")
 SOURCE_URL = (
     "https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/"
     "autonomous-vehicle-testing-permit-holders/"
