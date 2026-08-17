@@ -28,7 +28,10 @@ def test_california_dmv_permit_snapshot() -> None:
 def test_california_dmv_testing_miles_preserve_qualifier() -> None:
     payload = load_json("data/california-dmv-testing.json")
     observations = payload["observations"]
-    assert all(str(item["source_url"]).startswith("https://www.dmv.ca.gov/") for item in observations)
+    assert all(
+        str(item["source_url"]).startswith("https://www.dmv.ca.gov/")
+        for item in observations
+    )
 
     latest = observations[-1]
     assert latest["period_start"] == "2024-12-01"
