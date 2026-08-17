@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import json
 from pathlib import Path
 
 import pytest
@@ -45,3 +46,38 @@ def test_unknown_asset_type_is_rejected(monkeypatch: pytest.MonkeyPatch, tmp_pat
 
     with pytest.raises(ValueError, match="Unsupported asset type"):
         main.FinageEndpoints.last_price("commodity", "XAUUSD")
+
+
+def test_california_dmv_permit_snapshot() -> None:
+    data_path = Path("data/california-dmv-permits-2026-05-08.json")
+    payload = json.loads(data_path.read_text(encoding="utf-8"))
+
+    assert payload["publisher"] == "California Department of Motor Vehicles"
+    assert payload["source_url"].startswith("https://www.dmv.ca.gov/")
+
+    categories = {item["permit_type"]: item for item in payload["permit_categories"]}
+    assert set(categories) == {
+        "testing_with_safety_driver",
+        "driverless_testing",
+        "deployment",
+    }
+
+    safety_driver = categories["testing_with_safety_driver"]
+    assert safety_driver["effective_at"] == "2026-05-08"
+    assert len(safety_driver["holders"]) == 27
+    assert "TESLA ROBOTAXI LLC" in safety_driver["holders"]
+    assert "WAYMO LLC" in safety_driver["holders"]
+
+    driverless = categories["driverless_testing"]
+    assert driverless["effective_at"] == "2026-04-03"
+    assert len(driverless["holders"]) == 6
+    assert "Waymo LLC" in driverless["holders"]
+    assert "Zoox Inc." in driverless["holders"]
+
+    deployment = categories["deployment"]
+    assert deployment["effective_at"] == "2025-11-21"
+    assert deployment["holders"] == [
+        "Mercedes-Benz Research & Development North America",
+        "Nuro Inc.",
+        "Waymo LLC",
+    ]
