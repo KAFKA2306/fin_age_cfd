@@ -1,60 +1,69 @@
-# fin_age_cfd
+# autonomous-vehicles
 
-> **状態: 2025年の個人Windows環境向けCFD実験。現在のままでは再現・運用できません。**
+[![Quality](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/quality.yml/badge.svg)](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/quality.yml)
+[![NHTSA source check](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/source-check.yml/badge.svg)](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/source-check.yml)
 
-このリポジトリには、TraderMade APIからCFD価格を取得し、加工・可視化するために作成されたPythonコードとNotebookが残っています。汎用的なデータ基盤、継続運用中の収集サービス、再現可能な研究パッケージではありません。
+Autonomous Vehicles の実運用拡大と安全情報を、政府一次情報から再現可能に追跡するリポジトリです。
 
-## 現在確認できるもの
+旧 `fin_age_cfd` のCFD価格取得実験は正準責務ではありません。現在は NHTSA と California DMV の公開情報だけを扱います。
 
-- `src/main.py`: TraderMade APIを呼び出して価格データを取得する処理
-- `src/config.py`: 取得対象や保存先などの設定
-- `bat/set_api_key.bat`: Windowsの環境変数へAPIキーを設定する補助script
-- Notebook、生成物、過去のローカル実行環境
+## 一次情報
 
-## 現在の制約
+- NHTSA Standing General Order on Crash Reporting: https://www.nhtsa.gov/laws-regulations/standing-general-order-crash-reporting
+- California DMV Autonomous Vehicles: https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/
 
-### 個人環境への固定
+## 現在のデータ
 
-`src/config.py`と関連コードは、`D:\_investos\CFD`など特定のWindows絶対pathを前提にしています。別環境でcloneしても、そのままでは動作しません。
+- `data/california-dmv-permits-2026-05-08.json`
+  - safety-driver testing / driverless testing / deployment のpermit holder snapshot
+- `data/california-dmv-testing.json`
+  - California DMVが公表したpublic-road testing miles
+  - `more than 9 million` のような公表上の不等号条件は `qualifier` として保持し、正確な値を推測しません
+- NHTSA SGO revision snapshot
+  - ADS / Level 2 ADAS / Other の公開CSVを取得
+  - source SHA-256から決定的なrevision IDを生成
+  - sourceが変化した場合だけ `data/nhtsa/sgo/revisions/<revision_id>/` にraw CSVとmanifestを追加
 
-### 仮想環境のcommit
+## NHTSA source snapshot
 
-`.venv/`配下のsite-packagesがリポジトリに含まれています。これは依存関係の正準ではなく、環境依存・容量・security・license監査上の問題があります。再利用しないでください。
+現在の公開CSVを検証するだけの場合:
 
-### APIキー設定
+```bash
+python src/collect_nhtsa_sgo.py --output /tmp/sgo-manifest.json
+```
 
-`bat/set_api_key.bat`は管理者権限で`setx ... /M`を実行し、APIキーをWindowsのsystem環境変数へ永続設定します。共有PCや通常の開発用途には推奨しません。APIキーをrepository、log、Notebook出力へ保存しないでください。
+raw CSVをrevision historyとして保存する場合:
 
-### 再現性と検証
+```bash
+python src/collect_nhtsa_sgo.py --revision-dir data/nhtsa/sgo/revisions
+```
 
-- 正準な`pyproject.toml`またはlock fileがありません
-- CI・自動test・freshness監査を確認できません
-- committed dataや生成物の取得日時・source response・hash・再生成手順が整理されていません
-- 取得値、計算結果、チャートを現在の市場データとして利用できません
+同じ3ファイルの内容が変わらなければ同じrevision IDになるため、取得時刻だけを理由に新しいsnapshotは作りません。
 
-## 現在できないこと
+## 自動検証
 
-- clone直後の再現可能な実行
-- 継続的なCFDデータ収集
-- データ鮮度・完全性・API応答の保証
-- 本番運用、売買判断、投資助言への利用
+- `Quality`
+  - Ruff
+  - pytest
+  - tracked runtime artifact / unsafe host configuration の監査
+- `NHTSA source check`
+  - pull requestでは現在のNHTSA CSVを実取得して検証
+  - 定期実行ではsource revisionが変化した場合だけraw CSVとmanifestをcommit
 
-## 再開する場合の最低条件
+## データ上の制約
 
-1. `.venv/`と生成済み環境を履歴・配布対象から除外する
-2. repository相対pathと明示的な設定fileへ移行する
-3. `pyproject.toml`とlock fileで依存を固定する
-4. APIキーをprocess単位の環境変数またはsecret managerで扱う
-5. raw response、取得日時、symbol、timezone、単位、providerを保存する
-6. schema・欠損・重複・freshness testを追加する
-7. WindowsとLinuxの再現手順をCIで検証する
+- NHTSAのincident countは走行距離などのexposureで正規化されていないため、分母がない状態で会社間の安全率を作りません。
+- ADSとLevel 2 ADASを同じcategoryとして扱いません。
+- testing milesとcommercial service milesを混同しません。
+- sourceにない値や不明な期間・単位を補間しません。
 
-## セキュリティ
+## 未完了
 
-過去に設定したTraderMade APIキーが現在も有効か確認し、不要または露出の可能性がある場合はprovider側で失効・再発行してください。Gitから文字列を削除するだけでは、漏えい済みcredentialは無効化されません。
+Issue #5 の残件です。
 
-## 位置づけ
+- California DMV annual disengagement seriesの再構築
+- company-level normalization
+- 2024年以降の比較可能な時系列
+- 分母が確認できる場合だけ行うsafety comparison
 
-本リポジトリは、個人環境で行ったCFDデータ処理の過去実験を保存するものです。現行の金融データ基盤として扱わず、再開時は構造・依存・credential・provenanceを作り直してください。
-
-**README監査日:** 2026-08-05
+https://github.com/KAFKA2306/autonomous-vehicles/issues/5
