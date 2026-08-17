@@ -4,11 +4,14 @@ on:
   pull_request:
     paths:
       - 'src/collect_nhtsa_sgo.py'
+      - 'tests/test_nhtsa_sgo.py'
       - '.github/workflows/source-check.yml'
+  schedule:
+    - cron: '17 14 * * 2'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -20,4 +23,20 @@ jobs:
         with:
           python-version: '3.12'
       - name: Fetch current NHTSA CSV manifests
+        if: github.event_name == 'pull_request'
         run: python src/collect_nhtsa_sgo.py --output /tmp/sgo-manifest.json
+      - name: Store NHTSA source revision
+        if: github.event_name != 'pull_request'
+        run: python src/collect_nhtsa_sgo.py --revision-dir data/nhtsa/sgo/revisions
+      - name: Commit new source revision
+        if: github.event_name != 'pull_request'
+        run: |
+          if test -z "$(git status --porcelain -- data/nhtsa/sgo/revisions)"; then
+            echo 'No new NHTSA SGO revision.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/nhtsa/sgo/revisions
+          git commit -m 'data: snapshot NHTSA SGO revision'
+          git push
