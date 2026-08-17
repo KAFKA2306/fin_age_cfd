@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "publisher": "California Department of Motor Vehicles",
+  "source_url": "https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/autonomous-vehicle-testing-permit-holders/",
+  "retrieved_at": "2026-08-17",
+  "permit_categories": [
+    {
+      "permit_type": "testing_with_safety_driver",
+      "effective_at": "2026-05-08",
+      "holders": [
+        "AIMOTIVE INC.",
+        "AUDI OF AMERICA",
+        "AURORA OPERATIONS, INC.",
+        "AutoMo USA LLC",
+        "BLACK SESAME TECHNOLOGIES INC.",
+        "GATIK AI INC.",
+        "HELM.AI INC.",
+        "IMAGRY INC.",
+        "MAY MOBILITY",
+        "MERCEDES-BENZ RESEARCH & DEVELOPMENT NORTH AMERICA",
+        "MOIA America",
+        "MOTIONAL",
+        "NISSAN",
+        "NURO, INC.",
+        "NVIDIA CORPORATION",
+        "OHMIO INC.",
+        "PLUSAI, INC.",
+        "PONY.AI",
+        "QUALCOMM TECHNOLOGIES, INC.",
+        "TELENAV, INC.",
+        "TENSOR AUTO INC.",
+        "TESLA ROBOTAXI LLC",
+        "VUERON TECHNOLOGY USA, INC.",
+        "WAYMO LLC",
+        "WeRide Corp DBA WeRide AI",
+        "WOVEN BY TOYOTA",
+        "ZOOX INC."
+      ]
+    },
+    {
+      "permit_type": "driverless_testing",
+      "effective_at": "2026-04-03",
+      "holders": [
+        "AutoMo USA LLC",
+        "Nuro",
+        "Tensor Auto Inc.",
+        "Waymo LLC",
+        "WeRide Corp DBA WeRide AI",
+        "Zoox Inc."
+      ]
+    },
+    {
+      "permit_type": "deployment",
+      "effective_at": "2025-11-21",
+      "holders": [
+        "Mercedes-Benz Research & Development North America",
+        "Nuro Inc.",
+        "Waymo LLC"
+      ]
+    }
+  ]
+}
