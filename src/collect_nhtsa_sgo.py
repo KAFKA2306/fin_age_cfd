@@ -125,7 +125,8 @@ def main() -> None:
     if not outputs:
         outputs.append(write_manifest(manifest, Path("data/nhtsa/sgo-manifest.json")))
 
-    print(f"indexed {len(manifest['datasets'])} NHTSA SGO datasets -> {', '.join(map(str, outputs))}")
+    joined_outputs = ", ".join(map(str, outputs))
+    print(f"indexed {len(manifest['datasets'])} NHTSA SGO datasets -> {joined_outputs}")
 
 
 if __name__ == "__main__":
