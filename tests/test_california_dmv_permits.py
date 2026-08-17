@@ -1,8 +1,7 @@
 import json
-import pathlib
 
 
-DATA_PATH = pathlib.Path("data/california-dmv-permits-2026-05-08.json")
+DATA_PATH = "data/california-dmv-permits-2026-05-08.json"
 SOURCE_URL = (
     "https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/"
     "autonomous-vehicle-testing-permit-holders/"
@@ -10,7 +9,8 @@ SOURCE_URL = (
 
 
 def test_california_dmv_permit_snapshot() -> None:
-    payload = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+    with open(DATA_PATH, encoding="utf-8") as handle:
+        payload = json.load(handle)
 
     assert payload["publisher"] == "California Department of Motor Vehicles"
     assert payload["source_url"] == SOURCE_URL
