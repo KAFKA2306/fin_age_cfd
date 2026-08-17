@@ -3,15 +3,11 @@ requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fin-age-cfd"
+name = "autonomous-vehicles"
 version = "0.1.0"
-description = "Portable Finage market-data client"
+description = "Government-source evidence for autonomous-vehicle operations and safety"
 requires-python = ">=3.11"
-dependencies = [
-  "pandas>=2.2,<3",
-  "pyarrow>=17,<20",
-  "requests>=2.32,<3",
-]
+dependencies = []
 
 [project.optional-dependencies]
 dev = [
@@ -20,7 +16,7 @@ dev = [
 ]
 
 [tool.setuptools]
-py-modules = ["config", "main", "view"]
+py-modules = ["collect_nhtsa_sgo"]
 package-dir = {"" = "src"}
 
 [tool.pytest.ini_options]
