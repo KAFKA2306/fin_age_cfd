@@ -1,11 +1,7 @@
-name: NHTSA source check
+name: Government source check
 
 on:
   pull_request:
-    paths:
-      - 'src/collect_nhtsa_sgo.py'
-      - 'tests/test_nhtsa_sgo.py'
-      - '.github/workflows/source-check.yml'
   schedule:
     - cron: '17 14 * * 2'
   workflow_dispatch:
@@ -14,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  verify:
+  verify-nhtsa:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -28,7 +24,7 @@ jobs:
       - name: Store NHTSA source revision
         if: github.event_name != 'pull_request'
         run: python src/collect_nhtsa_sgo.py --revision-dir data/nhtsa/sgo/revisions
-      - name: Commit new source revision
+      - name: Commit new NHTSA source revision
         if: github.event_name != 'pull_request'
         run: |
           if test -z "$(git status --porcelain -- data/nhtsa/sgo/revisions)"; then
@@ -40,3 +36,31 @@ jobs:
           git add data/nhtsa/sgo/revisions
           git commit -m 'data: snapshot NHTSA SGO revision'
           git push
+
+  inspect-dmv:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inspect official DMV CSV schemas
+        run: |
+          python - <<'PY'
+          import csv, io, json, urllib.request
+          for year in (2023, 2024, 2025):
+              url=f'https://www.dmv.ca.gov/portal/file/{year}-autonomous-vehicle-disengagement-reports-csv/'
+              try:
+                  req=urllib.request.Request(url, headers={'User-Agent':'autonomous-vehicles/1.0 github.com/KAFKA2306/autonomous-vehicles'})
+                  raw=urllib.request.urlopen(req, timeout=60).read()
+                  text=raw.decode('utf-8-sig', errors='replace')
+                  reader=csv.DictReader(io.StringIO(text))
+                  rows=[]
+                  for _, row in zip(range(2), reader):
+                      rows.append(row)
+                  print(json.dumps({'year':year,'bytes':len(raw),'headers':reader.fieldnames,'sample':rows}, ensure_ascii=False))
+              except Exception as exc:
+                  print(json.dumps({'year':year,'error':repr(exc)}))
+          PY
