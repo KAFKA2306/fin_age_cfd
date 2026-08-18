@@ -1,0 +1,24 @@
+{
+  "dataset": "Autonomous Vehicles government evidence",
+  "evidence": {
+    "california_dmv_revision_manifest": "data/california/dmv/revisions/246928648625703fa4a5936b6ec7965a43595573a9740c17b95bf042852fc8cf/manifest.json",
+    "nhtsa_revision_manifest": "data/nhtsa/sgo/revisions/8b6924e76503126e9ecebbbd68cee7187e88bb6b16d2a52382b1b9d2a78f50a4/manifest.json"
+  },
+  "rules": [
+    "ADS and Level 2 ADAS are separate categories",
+    "testing and deployment are separate scopes",
+    "latest report version is selected per NHTSA Report ID while raw revisions remain stored",
+    "no exposure-adjusted safety rate is produced without a same-period denominator",
+    "California testing miles per disengagement is not a safety ranking"
+  ],
+  "schema_version": 1,
+  "sources": [
+    "https://www.nhtsa.gov/es/node/103486",
+    "https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/",
+    "https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/autonomous-vehicles-program-permit-resources/"
+  ],
+  "views": {
+    "california_dmv": "california-dmv.json",
+    "nhtsa_sgo": "nhtsa-sgo.json"
+  }
+}

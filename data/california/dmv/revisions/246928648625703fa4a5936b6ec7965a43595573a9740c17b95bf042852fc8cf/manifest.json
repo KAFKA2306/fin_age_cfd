@@ -1,0 +1,60 @@
+{
+  "publisher": "California Department of Motor Vehicles",
+  "retrieved_at": "2026-08-18T10:15:35.046832+00:00",
+  "revision_id": "246928648625703fa4a5936b6ec7965a43595573a9740c17b95bf042852fc8cf",
+  "schema_version": 1,
+  "sources": [
+    {
+      "bytes": 2064854,
+      "filename": "2023-vehicle-disengagement.csv",
+      "http_status": 200,
+      "kind": "vehicle-disengagement",
+      "rows": 12687,
+      "sha256": "13b25ecfb3ddc8b76d554e382f11424d66c9331cbca0423b459d25cf7bdfd597",
+      "url": "https://www.dmv.ca.gov/portal/file/2023-autonomous-vehicle-disengagement-reports-csv/",
+      "year": 2023
+    },
+    {
+      "bytes": 168161,
+      "filename": "2023-mileage.csv",
+      "http_status": 200,
+      "kind": "mileage",
+      "rows": 1633,
+      "sha256": "596b8087641e110ce0dca49ed1c917b383e1909c4842ef11aa1ded80acf5e209",
+      "url": "https://www.dmv.ca.gov/portal/file/2023-autonomous-mileage-reports-csv/",
+      "year": 2023
+    },
+    {
+      "bytes": 634195,
+      "filename": "2024-vehicle-disengagement.csv",
+      "http_status": 200,
+      "kind": "vehicle-disengagement",
+      "rows": 12607,
+      "sha256": "937fcc119e8782b52fe152c94aab2c72baa93a7283fa918add2dff13f40d7bb5",
+      "url": "https://www.dmv.ca.gov/portal/file/2024-autonomous-vehicle-disengagement-reports-csv/",
+      "year": 2024
+    },
+    {
+      "bytes": 264588,
+      "filename": "2024-mileage.csv",
+      "http_status": 200,
+      "kind": "mileage",
+      "rows": 2819,
+      "sha256": "862b861a2508f5c312540256a0e6422848112d552cbf5af1e78e1af503e12f55",
+      "url": "https://www.dmv.ca.gov/portal/file/2024-autonomous-mileage-reports-csv/",
+      "year": 2024
+    },
+    {
+      "http_status": 404,
+      "kind": "vehicle-disengagement",
+      "url": "https://www.dmv.ca.gov/portal/file/2025-autonomous-vehicle-disengagement-reports-csv/",
+      "year": 2025
+    },
+    {
+      "http_status": 404,
+      "kind": "mileage",
+      "url": "https://www.dmv.ca.gov/portal/file/2025-autonomous-mileage-reports-csv/",
+      "year": 2025
+    }
+  ]
+}
