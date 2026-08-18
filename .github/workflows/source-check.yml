@@ -2,6 +2,12 @@ name: Government source check
 
 on:
   pull_request:
+  push:
+    branches: [main]
+    paths:
+      - src/collect_nhtsa_sgo.py
+      - src/update_av_evidence.py
+      - .github/workflows/source-check.yml
   schedule:
     - cron: '17 14 * * 2'
   workflow_dispatch:
@@ -9,34 +15,73 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: government-source-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  inspect-government-sources:
-    if: github.event_name == 'pull_request'
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Inspect official NHTSA and DMV schemas
+      - name: Build live government evidence
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            python src/update_av_evidence.py \
+              --evidence-root build/data \
+              --api-dir build/api/v1/autonomous-vehicles
+          else
+            python src/update_av_evidence.py
+          fi
+      - name: Audit normalized outputs
         run: |
           python - <<'PY'
-          import csv, io, json, sys, urllib.request, urllib.error
-          sys.path.insert(0, 'src')
-          import collect_nhtsa_sgo
+          import json
+          from pathlib import Path
 
-          manifest, raw_files = collect_nhtsa_sgo.collect_sources()
-          for category, raw in raw_files.items():
-              reader = csv.DictReader(io.StringIO(raw.decode('utf-8-sig', errors='replace')))
-              row = next(reader, {})
-              print(json.dumps({'source':'nhtsa','category':category,'headers':reader.fieldnames,'sample':row}, ensure_ascii=False))
+          root = (
+              Path('build/api/v1/autonomous-vehicles')
+              if '${{ github.event_name }}' == 'pull_request'
+              else Path('api/v1/autonomous-vehicles')
+          )
+          nhtsa = json.loads((root/'nhtsa-sgo.json').read_text())
+          dmv = json.loads((root/'california-dmv.json').read_text())
+          index = json.loads((root/'index.json').read_text())
 
-          for slug in ('2024-autonomous-vehicle-disengagement-reports-csv', '2024-autonomous-mileage-reports-csv'):
-              url=f'https://www.dmv.ca.gov/portal/file/{slug}/'
-              req=urllib.request.Request(url, headers={'User-Agent':'autonomous-vehicles/1.0 github.com/KAFKA2306/autonomous-vehicles'})
-              raw=urllib.request.urlopen(req, timeout=60).read()
-              reader=csv.DictReader(io.StringIO(raw.decode('utf-8-sig', errors='replace')))
-              row=next(reader, {})
-              print(json.dumps({'source':'dmv','slug':slug,'headers':reader.fieldnames,'sample':row}, ensure_ascii=False))
+          assert set(nhtsa['categories']) == {'ads', 'level_2_adas', 'other'}
+          for category in ('ads', 'level_2_adas'):
+              view = nhtsa['categories'][category]
+              assert view['latest_report_count'] > 0
+              assert view['monthly_report_counts_2024_plus']
+              assert view['california_monthly_report_counts_2024_plus']
+          assert 'safety rate' in nhtsa['comparison_warning']
+
+          report = dmv['company_testing_reports']['2024']
+          assert report['period'] == {'start': '2023-12-01', 'end': '2024-11-30'}
+          assert report['companies']
+          assert report['events']
+          assert any(item['autonomous_testing_miles'] > 0 for item in report['companies'])
+          for company in report['companies']:
+              if company['testing_miles_per_disengagement'] is not None:
+                  assert company['source_count_match'] is True
+                  assert company['reported_disengagements'] > 0
+          assert len(dmv['permit_snapshot']['permit_categories']) == 3
+          assert set(index['views']) == {'nhtsa_sgo', 'california_dmv'}
+          assert all(not value.startswith('/') for value in index['evidence'].values())
           PY
+      - name: Commit new evidence revision and views
+        if: github.event_name != 'pull_request'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/nhtsa data/california/dmv api/v1/autonomous-vehicles
+          if git diff --cached --quiet; then
+            echo 'No government evidence change.'
+            exit 0
+          fi
+          git commit -m 'data: update autonomous vehicle evidence'
+          git push
