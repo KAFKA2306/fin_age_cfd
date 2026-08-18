@@ -21,12 +21,9 @@ DMV_REPORT_YEARS = (2023, 2024, 2025)
 DMV_URL = "https://www.dmv.ca.gov/portal/file/{year}-autonomous-{kind}-reports-csv/"
 DMV_PERMITS = ROOT / "data" / "california-dmv-permits-2026-05-08.json"
 DMV_STATEWIDE = ROOT / "data" / "california-dmv-testing.json"
-DMV_PROGRAM_URL = (
-    "https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/"
-)
+DMV_PROGRAM_URL = "https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/"
 DMV_RESOURCES_URL = (
-    "https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/"
-    "autonomous-vehicles-program-permit-resources/"
+    DMV_PROGRAM_URL + "autonomous-vehicles-program-permit-resources/"
 )
 UA = "autonomous-vehicles/1.0 github.com/KAFKA2306/autonomous-vehicles"
 
@@ -39,8 +36,17 @@ def sha256(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def display_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(ROOT.resolve()))
+    except ValueError:
+        return str(path)
+
+
 def fetch_optional(url: str) -> tuple[int, bytes | None]:
-    request = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "text/csv,*/*"})
+    request = urllib.request.Request(
+        url, headers={"User-Agent": UA, "Accept": "text/csv,*/*"}
+    )
     try:
         with urllib.request.urlopen(request, timeout=60) as response:
             return response.status, response.read()
@@ -52,7 +58,10 @@ def fetch_optional(url: str) -> tuple[int, bytes | None]:
 
 def read_csv(raw: bytes) -> list[dict[str, str]]:
     reader = csv.DictReader(io.StringIO(raw.decode("utf-8-sig", errors="replace")))
-    rows = [{str(key or "").strip(): str(value or "").strip() for key, value in row.items()} for row in reader]
+    rows = [
+        {str(key or "").strip(): str(value or "").strip() for key, value in row.items()}
+        for row in reader
+    ]
     if not reader.fieldnames or not rows:
         raise ValueError("government CSV is empty")
     return rows
@@ -120,11 +129,20 @@ def collect_dmv() -> tuple[dict[str, Any], dict[str, bytes]]:
                 )
             sources.append(item)
     required = {(2024, "vehicle-disengagement"), (2024, "mileage")}
-    available = {(item["year"], item["kind"]) for item in sources if item["http_status"] == 200}
+    available = {
+        (item["year"], item["kind"])
+        for item in sources
+        if item["http_status"] == 200
+    }
     if not required <= available:
-        raise ValueError(f"required 2024 California DMV sources unavailable: {required - available}")
+        raise ValueError(
+            f"required 2024 California DMV sources unavailable: {required - available}"
+        )
     identity = "\n".join(
-        sorted(f"{item['year']}:{item['kind']}:{item.get('sha256', item['http_status'])}" for item in sources)
+        sorted(
+            f"{item['year']}:{item['kind']}:{item.get('sha256', item['http_status'])}"
+            for item in sources
+        )
     )
     return (
         {
@@ -138,7 +156,9 @@ def collect_dmv() -> tuple[dict[str, Any], dict[str, bytes]]:
     )
 
 
-def write_dmv_revision(manifest: dict[str, Any], raw_files: dict[str, bytes], root: Path) -> Path:
+def write_dmv_revision(
+    manifest: dict[str, Any], raw_files: dict[str, bytes], root: Path
+) -> Path:
     target = root / str(manifest["revision_id"])
     manifest_path = target / "manifest.json"
     if manifest_path.exists():
@@ -150,7 +170,9 @@ def write_dmv_revision(manifest: dict[str, Any], raw_files: dict[str, bytes], ro
     return manifest_path
 
 
-def dmv_company_view(year: int, disengagement_raw: bytes, mileage_raw: bytes) -> dict[str, Any]:
+def dmv_company_view(
+    year: int, disengagement_raw: bytes, mileage_raw: bytes
+) -> dict[str, Any]:
     events = read_csv(disengagement_raw)
     mileage = read_csv(mileage_raw)
     event_counts: Counter[tuple[str, str]] = Counter()
@@ -224,7 +246,9 @@ def dmv_company_view(year: int, disengagement_raw: bytes, mileage_raw: bytes) ->
                 ),
             }
         )
-    companies.sort(key=lambda item: (str(item["manufacturer"]), str(item["permit_number"])))
+    companies.sort(
+        key=lambda item: (str(item["manufacturer"]), str(item["permit_number"]))
+    )
     return {
         "schema_version": 1,
         "report_year": year,
@@ -241,7 +265,9 @@ def dmv_company_view(year: int, disengagement_raw: bytes, mileage_raw: bytes) ->
     }
 
 
-def latest_nhtsa_reports(category: str, raw: bytes, source_sha: str) -> list[dict[str, Any]]:
+def latest_nhtsa_reports(
+    category: str, raw: bytes, source_sha: str
+) -> list[dict[str, Any]]:
     rows = read_csv(raw)
     by_report: dict[str, dict[str, str]] = {}
     for row in rows:
@@ -281,7 +307,9 @@ def latest_nhtsa_reports(category: str, raw: bytes, source_sha: str) -> list[dic
                 "source_sha256": source_sha,
             }
         )
-    return sorted(records, key=lambda item: (str(item["incident_month"]), item["report_id"]))
+    return sorted(
+        records, key=lambda item: (str(item["incident_month"]), item["report_id"])
+    )
 
 
 def nhtsa_view(manifest: dict[str, Any], raw_files: dict[str, bytes]) -> dict[str, Any]:
@@ -291,21 +319,28 @@ def nhtsa_view(manifest: dict[str, Any], raw_files: dict[str, bytes]) -> dict[st
     categories: dict[str, Any] = {}
     for category in ("ads", "level_2_adas", "other"):
         records = latest_nhtsa_reports(category, raw_files[category], source_sha[category])
-        monthly: Counter[str] = Counter(
-            str(item["incident_month"])
+        recent = [
+            item
             for item in records
             if item["incident_month"] and str(item["incident_month"]) >= "2024-01"
+        ]
+        monthly: Counter[str] = Counter(str(item["incident_month"]) for item in recent)
+        entities: Counter[str] = Counter(str(item["reporting_entity"]) for item in recent)
+        california = [item for item in recent if item["state"] == "CA"]
+        california_monthly: Counter[str] = Counter(
+            str(item["incident_month"]) for item in california
         )
-        entities: Counter[str] = Counter(
-            str(item["reporting_entity"])
-            for item in records
-            if item["incident_month"] and str(item["incident_month"]) >= "2024-01"
-        )
+        incident_ids = {item["same_incident_id"] for item in california if item["same_incident_id"]}
         categories[category] = {
             "latest_report_count": len(records),
             "records": records,
             "monthly_report_counts_2024_plus": dict(sorted(monthly.items())),
             "reporting_entity_counts_2024_plus": dict(sorted(entities.items())),
+            "california_report_count_2024_plus": len(california),
+            "california_monthly_report_counts_2024_plus": dict(
+                sorted(california_monthly.items())
+            ),
+            "california_distinct_same_incident_id_count_2024_plus": len(incident_ids),
         }
     return {
         "schema_version": 1,
@@ -318,11 +353,15 @@ def nhtsa_view(manifest: dict[str, Any], raw_files: dict[str, bytes]) -> dict[st
             "report counts are not exposure-normalized; ADS and Level 2 ADAS stay separate, "
             "and no company safety rate is produced without a matching mileage denominator"
         ),
+        "california_crash_view_rule": (
+            "California crash history uses NHTSA SGO rows with state=CA; report counts and "
+            "Same Incident ID counts are both exposed because reports can be revised or duplicated"
+        ),
     }
 
 
 def build_dmv_view(
-    manifest: dict[str, Any], raw_files: dict[str, bytes],
+    manifest: dict[str, Any], raw_files: dict[str, bytes]
 ) -> dict[str, Any]:
     available: dict[int, dict[str, str]] = defaultdict(dict)
     source_meta: dict[tuple[int, str], dict[str, Any]] = {}
@@ -360,7 +399,12 @@ def build_dmv_view(
         "statewide_testing_observations": statewide["observations"],
         "permit_snapshot": permits,
         "unavailable_sources": [
-            {"year": item["year"], "kind": item["kind"], "url": item["url"], "http_status": 404}
+            {
+                "year": item["year"],
+                "kind": item["kind"],
+                "url": item["url"],
+                "http_status": 404,
+            }
             for item in manifest["sources"]
             if item["http_status"] == 404
         ],
@@ -405,8 +449,8 @@ def publish(
             "california_dmv": "california-dmv.json",
         },
         "evidence": {
-            "nhtsa_revision_manifest": str(nhtsa_manifest_path),
-            "california_dmv_revision_manifest": str(dmv_manifest_path),
+            "nhtsa_revision_manifest": display_path(nhtsa_manifest_path),
+            "california_dmv_revision_manifest": display_path(dmv_manifest_path),
         },
         "rules": [
             "ADS and Level 2 ADAS are separate categories",
