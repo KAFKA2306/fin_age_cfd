@@ -46,21 +46,29 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Inspect official DMV CSV schemas
+      - name: Discover official DMV CSV endpoints
         run: |
           python - <<'PY'
-          import csv, io, json, urllib.request
-          for year in (2023, 2024, 2025):
-              url=f'https://www.dmv.ca.gov/portal/file/{year}-autonomous-vehicle-disengagement-reports-csv/'
+          import csv, io, json, urllib.request, urllib.error
+          slugs = [
+              '2023-autonomous-vehicle-disengagement-reports-csv',
+              '2024-autonomous-vehicle-disengagement-reports-csv',
+              '2025-autonomous-vehicle-disengagement-reports-csv',
+              '2024-autonomous-mileage-reports-csv',
+              '2024-autonomous-vehicle-mileage-reports-csv',
+              '2024-autonomous-mileage-report-csv',
+              '2025-autonomous-mileage-reports-csv',
+              '2025-autonomous-vehicle-mileage-reports-csv',
+          ]
+          for slug in slugs:
+              url=f'https://www.dmv.ca.gov/portal/file/{slug}/'
               try:
                   req=urllib.request.Request(url, headers={'User-Agent':'autonomous-vehicles/1.0 github.com/KAFKA2306/autonomous-vehicles'})
                   raw=urllib.request.urlopen(req, timeout=60).read()
                   text=raw.decode('utf-8-sig', errors='replace')
                   reader=csv.DictReader(io.StringIO(text))
-                  rows=[]
-                  for _, row in zip(range(2), reader):
-                      rows.append(row)
-                  print(json.dumps({'year':year,'bytes':len(raw),'headers':reader.fieldnames,'sample':rows}, ensure_ascii=False))
-              except Exception as exc:
-                  print(json.dumps({'year':year,'error':repr(exc)}))
+                  row=next(reader, {})
+                  print(json.dumps({'slug':slug,'status':200,'bytes':len(raw),'headers':reader.fieldnames,'sample':row}, ensure_ascii=False))
+              except urllib.error.HTTPError as exc:
+                  print(json.dumps({'slug':slug,'status':exc.code}))
           PY
