@@ -330,7 +330,9 @@ def nhtsa_view(manifest: dict[str, Any], raw_files: dict[str, bytes]) -> dict[st
         california_monthly: Counter[str] = Counter(
             str(item["incident_month"]) for item in california
         )
-        incident_ids = {item["same_incident_id"] for item in california if item["same_incident_id"]}
+        incident_ids = {
+            item["same_incident_id"] for item in california if item["same_incident_id"]
+        }
         categories[category] = {
             "latest_report_count": len(records),
             "records": records,
@@ -455,7 +457,10 @@ def publish(
         "rules": [
             "ADS and Level 2 ADAS are separate categories",
             "testing and deployment are separate scopes",
-            "latest report version is selected per NHTSA Report ID while raw revisions remain stored",
+            (
+                "latest report version is selected per NHTSA Report ID while raw revisions "
+                "remain stored"
+            ),
             "no exposure-adjusted safety rate is produced without a same-period denominator",
             "California testing miles per disengagement is not a safety ranking",
         ],
