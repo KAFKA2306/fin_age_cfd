@@ -1,11 +1,13 @@
-name: NHTSA source check
+name: Government source check
 
 on:
   pull_request:
+  push:
+    branches: [main]
     paths:
-      - 'src/collect_nhtsa_sgo.py'
-      - 'tests/test_nhtsa_sgo.py'
-      - '.github/workflows/source-check.yml'
+      - src/collect_nhtsa_sgo.py
+      - src/update_av_evidence.py
+      - .github/workflows/source-check.yml
   schedule:
     - cron: '17 14 * * 2'
   workflow_dispatch:
@@ -13,30 +15,73 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: government-source-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Fetch current NHTSA CSV manifests
-        if: github.event_name == 'pull_request'
-        run: python src/collect_nhtsa_sgo.py --output /tmp/sgo-manifest.json
-      - name: Store NHTSA source revision
-        if: github.event_name != 'pull_request'
-        run: python src/collect_nhtsa_sgo.py --revision-dir data/nhtsa/sgo/revisions
-      - name: Commit new source revision
+      - name: Build live government evidence
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            python src/update_av_evidence.py \
+              --evidence-root build/data \
+              --api-dir build/api/v1/autonomous-vehicles
+          else
+            python src/update_av_evidence.py
+          fi
+      - name: Audit normalized outputs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = (
+              Path('build/api/v1/autonomous-vehicles')
+              if '${{ github.event_name }}' == 'pull_request'
+              else Path('api/v1/autonomous-vehicles')
+          )
+          nhtsa = json.loads((root/'nhtsa-sgo.json').read_text())
+          dmv = json.loads((root/'california-dmv.json').read_text())
+          index = json.loads((root/'index.json').read_text())
+
+          assert set(nhtsa['categories']) == {'ads', 'level_2_adas', 'other'}
+          for category in ('ads', 'level_2_adas'):
+              view = nhtsa['categories'][category]
+              assert view['latest_report_count'] > 0
+              assert view['monthly_report_counts_2024_plus']
+              assert view['california_monthly_report_counts_2024_plus']
+          assert 'safety rate' in nhtsa['comparison_warning']
+
+          report = dmv['company_testing_reports']['2024']
+          assert report['period'] == {'start': '2023-12-01', 'end': '2024-11-30'}
+          assert report['companies']
+          assert report['events']
+          assert any(item['autonomous_testing_miles'] > 0 for item in report['companies'])
+          for company in report['companies']:
+              if company['testing_miles_per_disengagement'] is not None:
+                  assert company['source_count_match'] is True
+                  assert company['reported_disengagements'] > 0
+          assert len(dmv['permit_snapshot']['permit_categories']) == 3
+          assert set(index['views']) == {'nhtsa_sgo', 'california_dmv'}
+          assert all(not value.startswith('/') for value in index['evidence'].values())
+          PY
+      - name: Commit new evidence revision and views
         if: github.event_name != 'pull_request'
         run: |
-          if test -z "$(git status --porcelain -- data/nhtsa/sgo/revisions)"; then
-            echo 'No new NHTSA SGO revision.'
-            exit 0
-          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/nhtsa/sgo/revisions
-          git commit -m 'data: snapshot NHTSA SGO revision'
+          git add data/nhtsa data/california/dmv api/v1/autonomous-vehicles
+          if git diff --cached --quiet; then
+            echo 'No government evidence change.'
+            exit 0
+          fi
+          git commit -m 'data: update autonomous vehicle evidence'
           git push
