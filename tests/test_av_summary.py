@@ -1,9 +1,14 @@
+import importlib.util
 import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from src import build_av_summary as MODULE
+MODULE_PATH = Path(__file__).resolve().parents[1] / "src" / "build_av_summary.py"
+SPEC = importlib.util.spec_from_file_location("build_av_summary", MODULE_PATH)
+assert SPEC is not None and SPEC.loader is not None
+MODULE = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(MODULE)
 
 
 class AvSummaryTest(unittest.TestCase):
