@@ -72,7 +72,7 @@ def build(root: Path) -> dict:
             "source_revision_id": dmv["source_revision_id"],
             "latest_report_year": int(latest_year),
             "period": latest["period"],
-            "company_permit_count": len(companies),
+            "company_permit_group_count": len(companies),
             "autonomous_testing_miles": miles,
             "reported_disengagements": disengagements,
             "metric_warning": latest["metric_warning"],
