@@ -7,6 +7,7 @@ on:
     paths:
       - src/collect_nhtsa_sgo.py
       - src/update_av_evidence.py
+      - src/build_av_summary.py
       - .github/workflows/source-check.yml
   schedule:
     - cron: '17 14 * * 2'
@@ -34,8 +35,10 @@ jobs:
             python src/update_av_evidence.py \
               --evidence-root build/data \
               --api-dir build/api/v1/autonomous-vehicles
+            python src/build_av_summary.py --root build/api/v1/autonomous-vehicles
           else
             python src/update_av_evidence.py
+            python src/build_av_summary.py
           fi
       - name: Audit normalized outputs
         run: |
@@ -50,6 +53,7 @@ jobs:
           )
           nhtsa = json.loads((root/'nhtsa-sgo.json').read_text())
           dmv = json.loads((root/'california-dmv.json').read_text())
+          summary = json.loads((root/'summary.json').read_text())
           index = json.loads((root/'index.json').read_text())
 
           assert set(nhtsa['categories']) == {'ads', 'level_2_adas', 'other'}
@@ -58,7 +62,9 @@ jobs:
               assert view['latest_report_count'] > 0
               assert view['monthly_report_counts_2024_plus']
               assert view['california_monthly_report_counts_2024_plus']
+              assert summary['nhtsa_sgo'][category]['latest_report_count'] == view['latest_report_count']
           assert 'safety rate' in nhtsa['comparison_warning']
+          assert 'records' not in summary['nhtsa_sgo']['ads']
 
           report = dmv['company_testing_reports']['2024']
           assert report['period'] == {'start': '2023-12-01', 'end': '2024-11-30'}
@@ -69,6 +75,14 @@ jobs:
               if company['testing_miles_per_disengagement'] is not None:
                   assert company['source_count_match'] is True
                   assert company['reported_disengagements'] > 0
+          assert summary['california_dmv']['latest_report_year'] == 2024
+          assert summary['california_dmv']['autonomous_testing_miles'] == round(
+              sum(item['autonomous_testing_miles'] for item in report['companies']), 3
+          )
+          assert summary['california_dmv']['reported_disengagements'] == sum(
+              item['reported_disengagements'] for item in report['companies']
+          )
+          assert 'companies' not in summary['california_dmv']
           assert len(dmv['permit_snapshot']['permit_categories']) == 3
           assert set(index['views']) == {'nhtsa_sgo', 'california_dmv'}
           assert all(not value.startswith('/') for value in index['evidence'].values())
