@@ -17,8 +17,22 @@ Own autonomous-vehicle operational evidence for this repository: permits, testin
 2. Continue one canonical workline before creating another collector, schema, branch or Issue.
 3. Prefer newly verified operational records, identity/period corrections, deterministic comparisons, public usability, then simplification.
 4. Require definition/unit/jurisdiction comparability before calculating cross-operator or cross-period differences.
-5. Run focused deterministic checks and verify reviewed/merged/public state when applicable.
+5. Run focused deterministic checks and verify the exact reviewed revision before merge.
 6. Stop at the fixed point; do not add valuation or adoption forecasts merely because operational data changed.
+
+## Merge and release are separate
+
+### PR merge conditions
+
+A PR may merge when the repository-local operational-data contract is correct on the exact head revision: source identity, jurisdiction, period and unit semantics are preserved, focused deterministic tests pass, generated artifacts are reproducible where affected, and no unresolved review or correctness blocker remains.
+
+A future DMV/NHTSA release, post-merge live fetch, deployed public output, or real-world commercial operation is **not** a merge condition unless the PR specifically changes the release/live-acquisition mechanism and that mechanism must be validated before merge.
+
+### Product/data release conditions
+
+Release is a separate post-merge decision. Treat autonomous-vehicle evidence/views as released only after the merged `main` revision is read back and the release requirements in scope are actually executed, including fresh official source acquisition when required, published/generated artifacts, public surface if any, deployment identity, and rollback/rebuild path.
+
+A merged PR does not prove commercial deployment, safety, or production release. A release/live-source blocker may block release without invalidating a correctly merged repository change. Report merge and release independently.
 
 ## Boundaries
 
@@ -29,4 +43,4 @@ Own autonomous-vehicle operational evidence for this repository: permits, testin
 
 ## Completion report
 
-Report verified operational evidence Before -> After, primary source/canonical artifact, Issue/PR/commit/check/public evidence when applicable, manual work removed, and the remaining blocker.
+Report verified operational evidence Before -> After, primary source/canonical artifact, Issue/PR/commit/check evidence, then report `merged` and `released` separately with direct evidence for each. Include manual work removed and the remaining blocker.
