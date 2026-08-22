@@ -3,6 +3,17 @@
     "autonomous_testing_miles": 3912657.536,
     "company_permit_group_count": 20,
     "latest_report_year": 2024,
+    "latest_statewide_public_road_testing_miles": {
+      "period": {
+        "end": "2025-11-30",
+        "start": "2024-12-01"
+      },
+      "qualifier": "greater_than",
+      "scope": "all_testing_permit_holders",
+      "source_url": "https://www.dmv.ca.gov/portal/news-and-media/autonomous-vehicle-permit-holders-in-california-logged-more-than-9-million-test-miles-between-december-1-2024-and-november-30-2025/",
+      "unit": "miles",
+      "value": 9000000
+    },
     "metric_warning": "testing_miles_per_disengagement is an operational testing metric, not a safety rate or cross-company safety ranking",
     "period": {
       "end": "2024-11-30",
