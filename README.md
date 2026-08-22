@@ -7,7 +7,7 @@ Autonomous Vehicles の実運用拡大と事故・testing evidenceを、政府�
 
 ## 正準view
 
-- Compact summary: [`api/v1/autonomous-vehicles/summary.json`](api/v1/autonomous-vehicles/summary.json) — cross-repository利用向け。NHTSA category countsとCalifornia DMV同一report-period totalsだけを保持し、巨大incident/company ledgerを複製しない
+- Compact summary: [`api/v1/autonomous-vehicles/summary.json`](api/v1/autonomous-vehicles/summary.json) — cross-repository利用向け。NHTSA category counts、取得可能な最新California DMV company-level report totals、最新statewide public-road testing-mile observationだけを保持し、巨大incident/company ledgerを複製しない
 - Index: [`api/v1/autonomous-vehicles/index.json`](api/v1/autonomous-vehicles/index.json)
 - NHTSA SGO: [`api/v1/autonomous-vehicles/nhtsa-sgo.json`](api/v1/autonomous-vehicles/nhtsa-sgo.json)
 - California DMV: [`api/v1/autonomous-vehicles/california-dmv.json`](api/v1/autonomous-vehicles/california-dmv.json)
@@ -15,6 +15,8 @@ Autonomous Vehicles の実運用拡大と事故・testing evidenceを、政府�
 NHTSA viewはADS / Level 2 ADAS / Otherを分離し、Report IDごとに最新Report Versionだけをderived viewへ採用します。raw CSV revisionは別に保存するため、訂正履歴を失いません。Californiaのcrash時系列はNHTSA SGOの`state=CA`を別viewとして保持します。
 
 California DMV viewはannual public-road testing miles、disengagement event、permit snapshotを保持します。company-levelの`testing_miles_per_disengagement`は、同じreport year・同じPermit Numberでmileage CSVのdisengagement数とevent CSVの行数が一致し、分母が0でない場合だけ生成します。これはtesting activityの運用指標であり、安全率・安全順位ではありません。
+
+DMVのstatewide observationとcompany-level CSVは別系列として保持します。2024-12-01〜2025-11-30の公式発表は`9000000` milesと`greater_than` qualifierを保持し、取得できるcompany-level CSVが2024まででも2025のcompany別値を推測しません。
 
 `summary.json` は上記正準viewからのみ生成し、NHTSAの`records`、DMVの`companies` / `events`配列を含めません。NHTSA crash countをCalifornia testing milesで割るような異種・異期間の安全率も作りません。
 
