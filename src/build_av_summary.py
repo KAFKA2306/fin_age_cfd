@@ -36,6 +36,33 @@ def category_summary(category: dict) -> dict:
     }
 
 
+def latest_statewide_testing_miles(dmv: dict) -> dict:
+    observations = [
+        item
+        for item in dmv.get("statewide_testing_observations") or []
+        if item.get("metric") == "public_road_testing_miles"
+    ]
+    if not observations:
+        raise ValueError("California DMV output has no statewide public-road testing miles")
+    latest = max(
+        observations,
+        key=lambda item: (str(item.get("period_end") or ""), str(item.get("period_start") or "")),
+    )
+    result = {
+        "period": {
+            "start": latest["period_start"],
+            "end": latest["period_end"],
+        },
+        "value": latest["value"],
+        "unit": latest["unit"],
+        "scope": latest["scope"],
+        "source_url": latest["source_url"],
+    }
+    if latest.get("qualifier"):
+        result["qualifier"] = latest["qualifier"]
+    return result
+
+
 def build(root: Path) -> dict:
     nhtsa = load(root / "nhtsa-sgo.json")
     dmv = load(root / "california-dmv.json")
@@ -79,6 +106,9 @@ def build(root: Path) -> dict:
             "source_urls": sorted(
                 source["url"] for source in latest.get("sources", {}).values()
             ),
+            "latest_statewide_public_road_testing_miles": latest_statewide_testing_miles(
+                dmv
+            ),
         },
     }
 
@@ -101,6 +131,9 @@ def main() -> None:
                 "dmv_testing_miles": summary["california_dmv"][
                     "autonomous_testing_miles"
                 ],
+                "dmv_latest_statewide_testing_miles": summary["california_dmv"][
+                    "latest_statewide_public_road_testing_miles"
+                ]["value"],
             },
             sort_keys=True,
         )
