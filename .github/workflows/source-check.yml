@@ -82,6 +82,26 @@ jobs:
           assert summary['california_dmv']['reported_disengagements'] == sum(
               item['reported_disengagements'] for item in report['companies']
           )
+          statewide = max(
+              (
+                  item
+                  for item in dmv['statewide_testing_observations']
+                  if item['metric'] == 'public_road_testing_miles'
+              ),
+              key=lambda item: (item['period_end'], item['period_start']),
+          )
+          compact_statewide = summary['california_dmv'][
+              'latest_statewide_public_road_testing_miles'
+          ]
+          assert compact_statewide['period'] == {
+              'start': statewide['period_start'],
+              'end': statewide['period_end'],
+          }
+          assert compact_statewide['value'] == statewide['value']
+          assert compact_statewide.get('qualifier') == statewide.get('qualifier')
+          assert compact_statewide['unit'] == statewide['unit']
+          assert compact_statewide['scope'] == statewide['scope']
+          assert compact_statewide['source_url'] == statewide['source_url']
           assert 'companies' not in summary['california_dmv']
           assert len(dmv['permit_snapshot']['permit_categories']) == 3
           assert set(index['views']) == {'nhtsa_sgo', 'california_dmv'}

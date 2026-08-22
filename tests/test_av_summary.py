@@ -12,7 +12,7 @@ SPEC.loader.exec_module(MODULE)
 
 
 class AvSummaryTest(unittest.TestCase):
-    def test_summary_keeps_categories_and_same_period_dmv_totals(self):
+    def test_summary_keeps_categories_and_distinct_dmv_periods(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "nhtsa-sgo.json").write_text(
@@ -80,7 +80,27 @@ class AvSummaryTest(unittest.TestCase):
                                 ],
                             }
                         },
-                        "statewide_testing_observations": [],
+                        "statewide_testing_observations": [
+                            {
+                                "period_start": "2023-12-01",
+                                "period_end": "2024-11-30",
+                                "metric": "public_road_testing_miles",
+                                "value": 300,
+                                "unit": "miles",
+                                "scope": "all_testing_permit_holders",
+                                "source_url": "https://dmv.example/2024",
+                            },
+                            {
+                                "period_start": "2024-12-01",
+                                "period_end": "2025-11-30",
+                                "metric": "public_road_testing_miles",
+                                "value": 9000000,
+                                "qualifier": "greater_than",
+                                "unit": "miles",
+                                "scope": "all_testing_permit_holders",
+                                "source_url": "https://dmv.example/2025",
+                            },
+                        ],
                         "permit_snapshot": {},
                     }
                 ),
@@ -93,10 +113,25 @@ class AvSummaryTest(unittest.TestCase):
         self.assertEqual(
             summary["nhtsa_sgo"]["level_2_adas"]["latest_report_count"], 200
         )
+        self.assertEqual(summary["california_dmv"]["latest_report_year"], 2024)
         self.assertEqual(summary["california_dmv"]["autonomous_testing_miles"], 300.5)
         self.assertEqual(summary["california_dmv"]["reported_disengagements"], 5)
+        statewide = summary["california_dmv"][
+            "latest_statewide_public_road_testing_miles"
+        ]
+        self.assertEqual(
+            statewide["period"], {"start": "2024-12-01", "end": "2025-11-30"}
+        )
+        self.assertEqual(statewide["value"], 9000000)
+        self.assertEqual(statewide["qualifier"], "greater_than")
         self.assertNotIn("records", summary["nhtsa_sgo"]["ads"])
         self.assertNotIn("companies", summary["california_dmv"])
+
+    def test_summary_requires_statewide_testing_miles(self):
+        with self.assertRaisesRegex(
+            ValueError, "no statewide public-road testing miles"
+        ):
+            MODULE.latest_statewide_testing_miles({"statewide_testing_observations": []})
 
 
 if __name__ == "__main__":
