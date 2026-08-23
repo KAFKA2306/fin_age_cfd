@@ -2,55 +2,65 @@
 
 [![Quality](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/quality.yml/badge.svg)](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/quality.yml)
 [![Government source check](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/source-check.yml/badge.svg)](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/source-check.yml)
+[![Deploy Pages](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/pages.yml/badge.svg)](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/pages.yml)
 
-Autonomous Vehicles の実運用拡大と事故・testing evidenceを、政府一次情報から再現可能に追跡します。
+Autonomous Vehicles のtesting activityとcrash-report evidenceを、California DMV / NHTSAの政府一次情報から再現可能に追跡します。
 
-## 正準view
+## Public dashboard
 
-- Compact summary: [`api/v1/autonomous-vehicles/summary.json`](api/v1/autonomous-vehicles/summary.json) — cross-repository利用向け。NHTSA category counts、取得可能な最新California DMV company-level report totals、最新statewide public-road testing-mile observationだけを保持し、巨大incident/company ledgerを複製しない
-- Index: [`api/v1/autonomous-vehicles/index.json`](api/v1/autonomous-vehicles/index.json)
-- NHTSA SGO: [`api/v1/autonomous-vehicles/nhtsa-sgo.json`](api/v1/autonomous-vehicles/nhtsa-sgo.json)
-- California DMV: [`api/v1/autonomous-vehicles/california-dmv.json`](api/v1/autonomous-vehicles/california-dmv.json)
+- Daily entry point: https://kafka2306.github.io/autonomous-vehicles/
+- latest California statewide public-road testing observation
+- company permit group count in available DMV report data
+- NHTSA ADS report count and reporting-entity count
+- explicit scope warnings: **testing ≠ deployment**, **report count ≠ safety rate**
 
-NHTSA viewはADS / Level 2 ADAS / Otherを分離し、Report IDごとに最新Report Versionだけをderived viewへ採用します。raw CSV revisionは別に保存するため、訂正履歴を失いません。Californiaのcrash時系列はNHTSA SGOの`state=CA`を別viewとして保持します。
+現在のcanonical evidenceにcommercial driverless service area / rides / fleet sizeが存在しないため、Pagesは企業PR等からcurrent operation geographyを推測しません。
 
-California DMV viewはannual public-road testing miles、disengagement event、permit snapshotを保持します。company-levelの`testing_miles_per_disengagement`は、同じreport year・同じPermit Numberでmileage CSVのdisengagement数とevent CSVの行数が一致し、分母が0でない場合だけ生成します。これはtesting activityの運用指標であり、安全率・安全順位ではありません。
+Pages artifactは巨大ledgerを複製せず、`summary.json`と`index.json`だけを公開projectionとして使います。
 
-DMVのstatewide observationとcompany-level CSVは別系列として保持します。2024-12-01〜2025-11-30の公式発表は`9000000` milesと`greater_than` qualifierを保持し、取得できるcompany-level CSVが2024まででも2025のcompany別値を推測しません。
+## Canonical views
 
-`summary.json` は上記正準viewからのみ生成し、NHTSAの`records`、DMVの`companies` / `events`配列を含めません。NHTSA crash countをCalifornia testing milesで割るような異種・異期間の安全率も作りません。
+- [`api/v1/autonomous-vehicles/summary.json`](api/v1/autonomous-vehicles/summary.json) — cross-repository / Pages向けcompact summary
+- [`api/v1/autonomous-vehicles/index.json`](api/v1/autonomous-vehicles/index.json) — source and metric-boundary contract
+- [`api/v1/autonomous-vehicles/nhtsa-sgo.json`](api/v1/autonomous-vehicles/nhtsa-sgo.json) — NHTSA SGO report ledger
+- [`api/v1/autonomous-vehicles/california-dmv.json`](api/v1/autonomous-vehicles/california-dmv.json) — California DMV testing / disengagement / permit evidence
+
+NHTSA viewはADS / Level 2 ADAS / Otherを分離し、Report IDごとのlatest Report Versionをderived viewへ採用します。Raw CSV revisionsは別保存し、訂正履歴を保持します。
+
+California DMV viewはannual public-road testing miles、disengagement event、permit snapshotを保持します。`testing_miles_per_disengagement`は同一report year・同一Permit Numberで分子分母が整合する場合だけ生成し、**testing activityの運用指標**として扱います。安全率・安全順位ではありません。
+
+Statewide observationとcompany-level CSVは別seriesです。より新しいstatewide aggregateから未取得のcompany-level valuesを推測しません。
 
 ## Evidence
 
 - NHTSA raw revisions: `data/nhtsa/sgo/revisions/<revision_id>/`
 - California DMV raw revisions: `data/california/dmv/revisions/<revision_id>/`
-- California statewide testing observations: [`data/california-dmv-testing.json`](data/california-dmv-testing.json)
-- California permit snapshot: [`data/california-dmv-permits-2026-05-08.json`](data/california-dmv-permits-2026-05-08.json)
+- statewide testing observations: [`data/california-dmv-testing.json`](data/california-dmv-testing.json)
+- permit snapshot: [`data/california-dmv-permits-2026-05-08.json`](data/california-dmv-permits-2026-05-08.json)
 
-source bytesのSHA-256からrevision identityを作り、取得時刻だけが変わった場合は新しいraw revisionを作りません。
+source bytesのSHA-256からrevision identityを作るため、retrieval timeだけが変わった場合は新raw revisionを作りません。
 
-## 更新
+## Update and verification
 
 ```bash
 python src/update_av_evidence.py
 python src/build_av_summary.py
 ```
 
-この2コマンドでNHTSA SGO、California DMVの取得可能なannual disengagement/mileage CSVを実取得し、raw revision、正準view、compact summaryを更新します。`Government source check` はPRでlive sourceを検証し、main push・週次実行ではsource bytesが変わった場合だけevidence/viewをcommitします。
+- `Government source check` はPRでlive government sourceを検証し、main/weeklyではsource bytesが変化した場合だけevidence/viewsをcommitします。
+- `Deploy Pages` はPRでsummary/indexのsemantic boundaryとdashboard JSを検証し、mainではsmall public projectionをdeployしてexact commit SHAを照合します。
 
-## 一次情報
+## Primary sources
 
 - NHTSA Standing General Order on Crash Reporting: https://www.nhtsa.gov/laws-regulations/standing-general-order-crash-reporting
 - California DMV Autonomous Vehicles: https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/
 - California DMV Permit Resources: https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/autonomous-vehicles-program-permit-resources/
 
-2026年のCalifornia DMV reporting surfaceではVMT、dynamic-driving-task performance relevant system failures、vehicle immobilizations、braking events、collisions、noncompliance等が別templateとして定義されています。旧disengagement seriesと新制度metricsを同じ意味の系列として連結しません。
+## Data boundaries
 
-## データ上の制約
-
-- NHTSA SGOのreport countは走行距離などのexposureで正規化されていません。分母なしのcompany safety rateを作りません。
-- ADSとLevel 2 ADASを同じcategoryとして扱いません。
-- NHTSAの`Same Incident ID`を保持し、report数とincident identityを区別します。
-- California DMVのtestingとdeploymentを混同しません。旧annual disengagement reportingはtesting scopeです。
-- 2025旧形式CSVのように公式URLで取得できないものを推測生成しません。
-- sourceにない値・期間・単位を補間しません。
+- NHTSA report countはexposure-normalizedではない。matching mileage denominatorなしにcompany safety rateを作らない
+- ADSとLevel 2 ADASを混ぜない
+- `Same Incident ID`を保持し、report数とincident identityを区別する
+- California DMV testingとdeploymentを混同しない
+- reporting制度変更前後のmetricを同一seriesとして黙って連結しない
+- sourceにない値・期間・単位を補間しない
