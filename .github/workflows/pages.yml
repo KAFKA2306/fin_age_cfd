@@ -1,0 +1,106 @@
+name: Deploy Pages
+
+on:
+  pull_request:
+    paths:
+      - web/**
+      - api/v1/autonomous-vehicles/summary.json
+      - api/v1/autonomous-vehicles/index.json
+      - .github/workflows/pages.yml
+  push:
+    branches: [main]
+    paths:
+      - web/**
+      - api/v1/autonomous-vehicles/summary.json
+      - api/v1/autonomous-vehicles/index.json
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate government evidence boundaries
+        run: |
+          python -m json.tool api/v1/autonomous-vehicles/summary.json >/dev/null
+          python -m json.tool api/v1/autonomous-vehicles/index.json >/dev/null
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('api/v1/autonomous-vehicles')
+          s=json.loads((root/'summary.json').read_text())
+          i=json.loads((root/'index.json').read_text())
+          d=s['california_dmv']; n=s['nhtsa_sgo']
+          assert d['latest_statewide_public_road_testing_miles']['scope']=='all_testing_permit_holders'
+          assert 'not a safety rate' in d['metric_warning']
+          assert 'not exposure-normalized' in n['comparison_warning']
+          assert 'testing and deployment are separate scopes' in i['rules']
+          assert 'ADS and Level 2 ADAS are separate categories' in i['rules']
+          html=Path('web/index.html').read_text()
+          for marker in ('Testing ≠ deployment','Reports ≠ safety rate','No fabricated driverless-operation map'):
+              assert marker in html, marker
+          start=html.index('<script type="module">')+len('<script type="module">')
+          end=html.index('</script>',start)
+          Path('/tmp/dashboard.mjs').write_text(html[start:end])
+          PY
+          node --check /tmp/dashboard.mjs
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build small public projection
+        run: |
+          mkdir -p web/api/v1/autonomous-vehicles
+          cp api/v1/autonomous-vehicles/summary.json web/api/v1/autonomous-vehicles/summary.json
+          cp api/v1/autonomous-vehicles/index.json web/api/v1/autonomous-vehicles/index.json
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path('web/deployment.json').write_text(json.dumps({'source_commit':os.environ['GITHUB_SHA']},indent=2)+'\n')
+          PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify exact deployed revision and public projection
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          python - <<'PY'
+          import json, os, time
+          from urllib.parse import urljoin
+          from urllib.request import urlopen
+          base=os.environ['PAGE_URL']; expected=os.environ['GITHUB_SHA']; last=None
+          for _ in range(30):
+              try:
+                  with urlopen(urljoin(base,'deployment.json'),timeout=10) as r: dep=json.load(r)
+                  with urlopen(urljoin(base,'api/v1/autonomous-vehicles/summary.json'),timeout=10) as r: s=json.load(r)
+                  with urlopen(base,timeout=10) as r: html=r.read().decode()
+                  assert dep['source_commit']==expected
+                  assert s['california_dmv']['latest_statewide_public_road_testing_miles']['value']>0
+                  assert '無人運転は' in html and 'Testing ≠ deployment' in html
+                  print({'page_url':base,'source_commit':expected})
+                  break
+              except Exception as exc:
+                  last=exc; time.sleep(2)
+          else:
+              raise SystemExit(f'production verification failed: {last}')
+          PY
