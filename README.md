@@ -32,7 +32,7 @@ California DMV viewはannual public-road testing miles、disengagement event、p
 
 Statewide observationとcompany-level CSVは別seriesです。より新しいstatewide aggregateから未取得のcompany-level valuesを推測しません。
 
-California DMVの新しいAutonomous Vehicles regulationsは2026年4月28日に発効しました。従来のdisengagement reportingは廃止され、drivered testingはDynamic Driving Task Performance Relevant System Failures、driverless testingはvehicle immobilizationsへ移行します。過去のdisengagement seriesと新しいreporting metricは同じseriesとして連結しません。
+California DMVの新しいAutonomous Vehicles regulationsは2026年4月28日に発効しました。従来のdisengagement reportingは廃止され、drivered testingはDynamic Driving Task Performance Relevant System Failures、driverless testingはvehicle immobilizationsへ移行します。新しいtesting reporting requirementsは発効120日後の2026年8月26日にoperativeとなります。過去のdisengagement seriesと新しいreporting metricは同じseriesとして連結せず、公開された実提出データを取得できるまではUNVERIFIEDとして扱います。
 
 ## Evidence
 
@@ -59,6 +59,7 @@ python src/build_av_summary.py
 - California DMV Autonomous Vehicles: https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/
 - California DMV Permit Resources: https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/autonomous-vehicles-program-permit-resources/
 - California DMV Rulemaking Actions: https://www.dmv.ca.gov/portal/about-the-california-department-of-motor-vehicles/california-dmv-rulemaking-actions/
+- California DMV Adopted Regulatory Text, Article 3.7: https://www.dmv.ca.gov/portal/file/order-to-adopt-article-3-7-regulations-pdf/
 - California DMV Final Statement of Reasons, OAL File Number 2025-0415-04: https://www.dmv.ca.gov/portal/file/final-statement-of-reasons-2025-0415-04-pdf/
 
 ## Data boundaries
@@ -68,4 +69,5 @@ python src/build_av_summary.py
 - `Same Incident ID`を保持し、report数とincident identityを区別する
 - California DMV testingとdeploymentを混同しない
 - 2026年4月28日のregulation change前後でdisengagement、Dynamic Driving Task Performance Relevant System Failures、vehicle immobilizationsを同一metricとして連結しない
+- 新しいCalifornia DMV testing reporting requirementsは2026年8月26日からoperative。公開された実提出データが確認できるまで値を推測しない
 - sourceにない値・期間・単位を補間しない
