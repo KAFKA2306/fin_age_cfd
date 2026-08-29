@@ -51,3 +51,15 @@ def test_california_dmv_testing_history() -> None:
         "safety_driver_testing_miles": 5_801_069,
         "driverless_testing_miles": 3_267_792,
     }
+
+    boundaries = payload["reporting_regime_boundaries"]
+    assert len(boundaries) == 1
+    boundary = boundaries[0]
+    assert boundary["effective_date"] == "2026-04-28"
+    assert "disengagement reporting removed" in boundary["change"]
+    assert "dynamic driving task performance relevant system failures" in boundary["change"]
+    assert "vehicle immobilizations" in boundary["change"]
+    assert str(boundary["source_url"]).startswith("https://www.dmv.ca.gov/")
+    assert str(boundary["final_statement_of_reasons_url"]).startswith(
+        "https://www.dmv.ca.gov/"
+    )
