@@ -14,6 +14,10 @@ on:
       - api/v1/autonomous-vehicles/summary.json
       - api/v1/autonomous-vehicles/index.json
       - .github/workflows/pages.yml
+  workflow_run:
+    workflows: ["Government source check"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -27,6 +31,7 @@ concurrency:
 
 jobs:
   validate:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -56,7 +61,7 @@ jobs:
           node --check /tmp/dashboard.mjs
 
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     needs: validate
     environment:
       name: github-pages
