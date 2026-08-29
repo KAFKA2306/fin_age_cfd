@@ -39,7 +39,7 @@ California DMVの新しいAutonomous Vehicles regulationsは2026年4月28日に�
 - NHTSA raw revisions: `data/nhtsa/sgo/revisions/<revision_id>/`
 - California DMV raw revisions: `data/california/dmv/revisions/<revision_id>/`
 - statewide testing observations / reporting regime boundary: [`data/california-dmv-testing.json`](data/california-dmv-testing.json)
-- permit snapshot: [`data/california-dmv-permits-2026-05-08.json`](data/california-dmv-permits-2026-05-08.json)
+- permit snapshot: [`data/california-dmv-permits.json`](data/california-dmv-permits.json)
 
 source bytesのSHA-256からrevision identityを作るため、retrieval timeだけが変わった場合は新raw revisionを作りません。
 
