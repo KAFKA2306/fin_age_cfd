@@ -66,8 +66,15 @@ jobs:
           assert 'safety rate' in nhtsa['comparison_warning']
           assert 'records' not in summary['nhtsa_sgo']['ads']
 
-          report = dmv['company_testing_reports']['2024']
-          assert report['period'] == {'start': '2023-12-01', 'end': '2024-11-30'}
+          reports = dmv['company_testing_reports']
+          latest_year = max(reports, key=int)
+          report_year = int(latest_year)
+          report = reports[latest_year]
+          assert report['report_year'] == report_year
+          assert report['period'] == {
+              'start': f'{report_year - 1}-12-01',
+              'end': f'{report_year}-11-30',
+          }
           assert report['companies']
           assert report['events']
           assert any(item['autonomous_testing_miles'] > 0 for item in report['companies'])
@@ -75,7 +82,8 @@ jobs:
               if company['testing_miles_per_disengagement'] is not None:
                   assert company['source_count_match'] is True
                   assert company['reported_disengagements'] > 0
-          assert summary['california_dmv']['latest_report_year'] == 2024
+          assert summary['california_dmv']['latest_report_year'] == report_year
+          assert summary['california_dmv']['period'] == report['period']
           assert summary['california_dmv']['autonomous_testing_miles'] == round(
               sum(item['autonomous_testing_miles'] for item in report['companies']), 3
           )
