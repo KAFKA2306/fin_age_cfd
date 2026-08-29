@@ -5,6 +5,8 @@ on:
   push:
     branches: [main]
     paths:
+      - data/california-dmv-testing.json
+      - data/california-dmv-permits-2026-05-08.json
       - src/collect_nhtsa_sgo.py
       - src/update_av_evidence.py
       - src/build_av_summary.py
