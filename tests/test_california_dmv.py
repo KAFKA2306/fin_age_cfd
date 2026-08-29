@@ -17,8 +17,11 @@ def test_california_dmv_permit_snapshot() -> None:
         "driverless_testing",
         "deployment",
     }
-    assert categories["testing_with_safety_driver"]["effective_at"] == "2026-05-08"
-    assert len(categories["testing_with_safety_driver"]["holders"]) == 27
+    drivered = categories["testing_with_safety_driver"]
+    assert drivered["effective_at"] == "2026-08-12"
+    assert len(drivered["holders"]) == 28
+    assert "KODIAK AI" in drivered["holders"]
+    assert "WeRide AI" in drivered["holders"]
     assert categories["driverless_testing"]["effective_at"] == "2026-04-03"
     assert len(categories["driverless_testing"]["holders"]) == 6
     assert categories["deployment"]["effective_at"] == "2025-11-21"
