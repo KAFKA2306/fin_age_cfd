@@ -278763,7 +278763,7 @@
   "permit_snapshot": {
     "permit_categories": [
       {
-        "effective_at": "2026-05-08",
+        "effective_at": "2026-08-12",
         "holders": [
           "AIMOTIVE INC.",
           "AUDI OF AMERICA",
@@ -278773,6 +278773,7 @@
           "GATIK AI INC.",
           "HELM.AI INC.",
           "IMAGRY INC.",
+          "KODIAK AI",
           "MAY MOBILITY",
           "MERCEDES-BENZ RESEARCH & DEVELOPMENT NORTH AMERICA",
           "MOIA America",
@@ -278789,7 +278790,7 @@
           "TESLA ROBOTAXI LLC",
           "VUERON TECHNOLOGY USA, INC.",
           "WAYMO LLC",
-          "WeRide Corp DBA WeRide AI",
+          "WeRide AI",
           "WOVEN BY TOYOTA",
           "ZOOX INC."
         ],
@@ -278802,7 +278803,7 @@
           "Nuro",
           "Tensor Auto Inc.",
           "Waymo LLC",
-          "WeRide Corp DBA WeRide AI",
+          "WeRide AI",
           "Zoox Inc."
         ],
         "permit_type": "driverless_testing"
@@ -278818,7 +278819,7 @@
       }
     ],
     "publisher": "California Department of Motor Vehicles",
-    "retrieved_at": "2026-08-17",
+    "retrieved_at": "2026-08-29",
     "schema_version": 1,
     "source_url": "https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/autonomous-vehicle-testing-permit-holders/"
   },
