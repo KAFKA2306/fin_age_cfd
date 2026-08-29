@@ -7,7 +7,7 @@ def load_json(path: str) -> dict[str, object]:
 
 
 def test_california_dmv_permit_snapshot() -> None:
-    payload = load_json("data/california-dmv-permits-2026-05-08.json")
+    payload = load_json("data/california-dmv-permits.json")
     assert payload["publisher"] == "California Department of Motor Vehicles"
     assert str(payload["source_url"]).startswith("https://www.dmv.ca.gov/")
 
