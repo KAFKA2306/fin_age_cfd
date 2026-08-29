@@ -19,7 +19,7 @@ from collect_nhtsa_sgo import DOWNLOADS, collect_sources, write_revision
 ROOT = Path(__file__).resolve().parents[1]
 DMV_REPORT_YEARS = (2023, 2024, 2025)
 DMV_URL = "https://www.dmv.ca.gov/portal/file/{year}-autonomous-{kind}-reports-csv/"
-DMV_PERMITS = ROOT / "data" / "california-dmv-permits-2026-05-08.json"
+DMV_PERMITS = ROOT / "data" / "california-dmv-permits.json"
 DMV_STATEWIDE = ROOT / "data" / "california-dmv-testing.json"
 DMV_PROGRAM_URL = "https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/"
 DMV_RESOURCES_URL = (
