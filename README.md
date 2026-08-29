@@ -1,3 +1,5 @@
+https://kafka2306.github.io/autonomous-vehicles/
+
 # autonomous-vehicles
 
 [![Quality](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/quality.yml/badge.svg)](https://github.com/KAFKA2306/autonomous-vehicles/actions/workflows/quality.yml)
@@ -8,7 +10,6 @@ Autonomous Vehicles のtesting activityとcrash-report evidenceを、California 
 
 ## Public dashboard
 
-- Daily entry point: https://kafka2306.github.io/autonomous-vehicles/
 - latest California statewide public-road testing observation
 - company permit group count in available DMV report data
 - NHTSA ADS report count and reporting-entity count
