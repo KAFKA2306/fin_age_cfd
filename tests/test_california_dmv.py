@@ -59,10 +59,15 @@ def test_california_dmv_testing_history() -> None:
     assert len(boundaries) == 1
     boundary = boundaries[0]
     assert boundary["effective_date"] == "2026-04-28"
+    assert boundary["reporting_operative_delay_days"] == 120
+    assert boundary["reporting_operative_date"] == "2026-08-26"
     assert "disengagement reporting removed" in boundary["change"]
     assert "dynamic driving task performance relevant system failures" in boundary["change"]
     assert "vehicle immobilizations" in boundary["change"]
     assert str(boundary["source_url"]).startswith("https://www.dmv.ca.gov/")
+    assert str(boundary["adopted_regulatory_text_url"]).startswith(
+        "https://www.dmv.ca.gov/"
+    )
     assert str(boundary["final_statement_of_reasons_url"]).startswith(
         "https://www.dmv.ca.gov/"
     )
