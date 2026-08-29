@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: government-source-${{ github.ref }}
@@ -116,14 +117,22 @@ jobs:
           assert all(not value.startswith('/') for value in index['evidence'].values())
           PY
       - name: Commit new evidence revision and views
+        id: update
         if: github.event_name != 'pull_request'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/nhtsa data/california/dmv api/v1/autonomous-vehicles
           if git diff --cached --quiet; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
             echo 'No government evidence change.'
             exit 0
           fi
           git commit -m 'data: update autonomous vehicle evidence'
           git push
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
+      - name: Publish changed public evidence
+        if: github.event_name != 'pull_request' && steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main
