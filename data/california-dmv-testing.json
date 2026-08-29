@@ -1,6 +1,14 @@
 {
   "schema_version": 1,
   "publisher": "California Department of Motor Vehicles",
+  "reporting_regime_boundaries": [
+    {
+      "effective_date": "2026-04-28",
+      "change": "disengagement reporting removed; drivered testing uses dynamic driving task performance relevant system failures and driverless testing uses vehicle immobilizations",
+      "source_url": "https://www.dmv.ca.gov/portal/about-the-california-department-of-motor-vehicles/california-dmv-rulemaking-actions/",
+      "final_statement_of_reasons_url": "https://www.dmv.ca.gov/portal/file/final-statement-of-reasons-2025-0415-04-pdf/"
+    }
+  ],
   "observations": [
     {
       "period_start": "2022-12-01",
