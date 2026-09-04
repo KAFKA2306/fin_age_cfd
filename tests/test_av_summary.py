@@ -101,7 +101,27 @@ class AvSummaryTest(unittest.TestCase):
                                 "source_url": "https://dmv.example/2025",
                             },
                         ],
-                        "permit_snapshot": {},
+                        "permit_snapshot": {
+                            "retrieved_at": "2026-08-29",
+                            "source_url": "https://dmv.example/permits",
+                            "permit_categories": [
+                                {
+                                    "permit_type": "testing_with_safety_driver",
+                                    "effective_at": "2026-08-12",
+                                    "holders": ["A", "B", "C"],
+                                },
+                                {
+                                    "permit_type": "driverless_testing",
+                                    "effective_at": "2026-04-03",
+                                    "holders": ["A", "B"],
+                                },
+                                {
+                                    "permit_type": "deployment",
+                                    "effective_at": "2025-11-21",
+                                    "holders": ["B"],
+                                },
+                            ],
+                        },
                     }
                 ),
                 encoding="utf-8",
@@ -124,6 +144,16 @@ class AvSummaryTest(unittest.TestCase):
         )
         self.assertEqual(statewide["value"], 9000000)
         self.assertEqual(statewide["qualifier"], "greater_than")
+        permits = summary["california_dmv"]["current_permit_snapshot"]
+        self.assertEqual(permits["source_url"], "https://dmv.example/permits")
+        self.assertEqual(
+            permits["categories"]["testing_with_safety_driver"]["holder_count"], 3
+        )
+        self.assertEqual(
+            permits["categories"]["driverless_testing"]["holder_count"], 2
+        )
+        self.assertEqual(permits["categories"]["deployment"]["holder_count"], 1)
+        self.assertNotIn("holders", permits["categories"]["testing_with_safety_driver"])
         self.assertNotIn("records", summary["nhtsa_sgo"]["ads"])
         self.assertNotIn("companies", summary["california_dmv"])
 
@@ -132,6 +162,10 @@ class AvSummaryTest(unittest.TestCase):
             ValueError, "no statewide public-road testing miles"
         ):
             MODULE.latest_statewide_testing_miles({"statewide_testing_observations": []})
+
+    def test_summary_requires_current_permit_snapshot(self):
+        with self.assertRaisesRegex(ValueError, "no current permit snapshot"):
+            MODULE.current_permit_summary({"permit_snapshot": {}})
 
 
 if __name__ == "__main__":
