@@ -71,3 +71,48 @@ def test_california_dmv_testing_history() -> None:
     assert str(boundary["final_statement_of_reasons_url"]).startswith(
         "https://www.dmv.ca.gov/"
     )
+
+    requirements = boundary["reporting_requirements"]
+    assert requirements["industry_memo"] == "AVIM 2026-001A"
+    assert requirements["report_format"] == "csv"
+    assert requirements["monthly_reporting_start"] == "2026-08-26"
+    assert requirements["first_quarterly_report_due"] == "2026-09-30"
+    assert str(requirements["industry_memo_url"]).startswith("https://qr.dmv.ca.gov/")
+    assert str(requirements["templates_page_url"]).startswith("https://qr.dmv.ca.gov/")
+
+    reports = requirements["recurring_reports"]
+    assert len(reports) == 9
+    by_permit = {}
+    for report in reports:
+        by_permit.setdefault(report["permit_type"], []).append(report)
+        assert str(report["template_url"]).startswith("https://qr.dmv.ca.gov/")
+
+    assert {report["report_type"] for report in by_permit["drivered_testing"]} == {
+        "braking_events",
+        "vehicle_miles_traveled",
+        "dynamic_driving_task_performance_relevant_system_failures",
+    }
+    assert {report["frequency"] for report in by_permit["drivered_testing"]} == {"monthly"}
+
+    driverless = {
+        report["report_type"]: report for report in by_permit["driverless_testing"]
+    }
+    assert set(driverless) == {
+        "braking_events",
+        "vehicle_miles_traveled",
+        "vehicle_immobilizations",
+    }
+    assert driverless["braking_events"]["first_report_rule"] == "60_days_after_permit_issuance"
+    assert {report["frequency"] for report in driverless.values()} == {"monthly"}
+
+    deployment = by_permit["deployment"]
+    assert {report["report_type"] for report in deployment} == {
+        "vehicle_immobilizations",
+        "dynamic_driving_task_performance_relevant_system_failures",
+        "vehicle_miles_traveled",
+    }
+    assert {report["frequency"] for report in deployment} == {"quarterly"}
+    assert all(
+        report["due_dates"] == ["03-31", "06-30", "09-30", "12-31"]
+        for report in deployment
+    )
