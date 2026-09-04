@@ -9,7 +9,96 @@
       "change": "disengagement reporting removed; drivered testing uses dynamic driving task performance relevant system failures and driverless testing uses vehicle immobilizations",
       "source_url": "https://www.dmv.ca.gov/portal/about-the-california-department-of-motor-vehicles/california-dmv-rulemaking-actions/",
       "adopted_regulatory_text_url": "https://www.dmv.ca.gov/portal/file/order-to-adopt-article-3-7-regulations-pdf/",
-      "final_statement_of_reasons_url": "https://www.dmv.ca.gov/portal/file/final-statement-of-reasons-2025-0415-04-pdf/"
+      "final_statement_of_reasons_url": "https://www.dmv.ca.gov/portal/file/final-statement-of-reasons-2025-0415-04-pdf/",
+      "reporting_requirements": {
+        "industry_memo": "AVIM 2026-001A",
+        "industry_memo_url": "https://qr.dmv.ca.gov/portal/file/avim-2026-001-reporting-requirements-pdf/",
+        "templates_page_url": "https://qr.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/autonomous-vehicles-program-permit-resources/",
+        "report_format": "csv",
+        "monthly_reporting_start": "2026-08-26",
+        "first_quarterly_report_due": "2026-09-30",
+        "recurring_reports": [
+          {
+            "permit_type": "drivered_testing",
+            "report_type": "braking_events",
+            "frequency": "monthly",
+            "due_rule": "30th_of_following_month",
+            "template_url": "https://qr.dmv.ca.gov/portal/file/braking-events-reporting-template-pdf/"
+          },
+          {
+            "permit_type": "drivered_testing",
+            "report_type": "vehicle_miles_traveled",
+            "frequency": "monthly",
+            "due_rule": "first_business_day_after_15th",
+            "template_url": "https://qr.dmv.ca.gov/portal/file/vehicles-miles-traveled-reporting-template-pdf/"
+          },
+          {
+            "permit_type": "drivered_testing",
+            "report_type": "dynamic_driving_task_performance_relevant_system_failures",
+            "frequency": "monthly",
+            "due_rule": "first_business_day_after_15th",
+            "template_url": "https://qr.dmv.ca.gov/portal/file/dynamic-driving-task-performance-relevant-system-failure-reporting-template-pdf/"
+          },
+          {
+            "permit_type": "driverless_testing",
+            "report_type": "braking_events",
+            "frequency": "monthly",
+            "due_rule": "30th_of_following_month",
+            "first_report_rule": "60_days_after_permit_issuance",
+            "template_url": "https://qr.dmv.ca.gov/portal/file/braking-events-reporting-template-pdf/"
+          },
+          {
+            "permit_type": "driverless_testing",
+            "report_type": "vehicle_miles_traveled",
+            "frequency": "monthly",
+            "due_rule": "first_business_day_after_15th",
+            "template_url": "https://qr.dmv.ca.gov/portal/file/vehicles-miles-traveled-reporting-template-pdf/"
+          },
+          {
+            "permit_type": "driverless_testing",
+            "report_type": "vehicle_immobilizations",
+            "frequency": "monthly",
+            "due_rule": "first_business_day_after_15th",
+            "template_url": "https://qr.dmv.ca.gov/portal/file/vehicle-immobilization-reporting-template-pdf/"
+          },
+          {
+            "permit_type": "deployment",
+            "report_type": "vehicle_immobilizations",
+            "frequency": "quarterly",
+            "due_dates": [
+              "03-31",
+              "06-30",
+              "09-30",
+              "12-31"
+            ],
+            "template_url": "https://qr.dmv.ca.gov/portal/file/vehicle-immobilization-reporting-template-pdf/"
+          },
+          {
+            "permit_type": "deployment",
+            "report_type": "dynamic_driving_task_performance_relevant_system_failures",
+            "frequency": "quarterly",
+            "due_dates": [
+              "03-31",
+              "06-30",
+              "09-30",
+              "12-31"
+            ],
+            "template_url": "https://qr.dmv.ca.gov/portal/file/dynamic-driving-task-performance-relevant-system-failure-reporting-template-pdf/"
+          },
+          {
+            "permit_type": "deployment",
+            "report_type": "vehicle_miles_traveled",
+            "frequency": "quarterly",
+            "due_dates": [
+              "03-31",
+              "06-30",
+              "09-30",
+              "12-31"
+            ],
+            "template_url": "https://qr.dmv.ca.gov/portal/file/vehicles-miles-traveled-reporting-template-pdf/"
+          }
+        ]
+      }
     }
   ],
   "observations": [
