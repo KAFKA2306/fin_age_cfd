@@ -9,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ROOT = ROOT / "api" / "v1" / "autonomous-vehicles"
+DEFAULT_DMV_REPORTING_DATA = ROOT / "data" / "california-dmv-testing.json"
 
 
 def dump(value: object) -> bytes:
@@ -87,7 +88,39 @@ def current_permit_summary(dmv: dict) -> dict:
     }
 
 
-def build(root: Path) -> dict:
+def current_reporting_regime(path: Path) -> dict:
+    source = load(path)
+    boundaries = source.get("reporting_regime_boundaries") or []
+    if not boundaries:
+        raise ValueError("California DMV data has no reporting regime boundary")
+    latest = max(boundaries, key=lambda item: str(item.get("effective_date") or ""))
+    requirements = latest.get("reporting_requirements") or {}
+    required = (
+        "industry_memo",
+        "industry_memo_url",
+        "report_format",
+        "monthly_reporting_start",
+        "first_quarterly_report_due",
+    )
+    missing = [key for key in required if not requirements.get(key)]
+    if missing:
+        raise ValueError(f"California DMV reporting requirements missing: {missing}")
+    return {
+        "effective_date": latest["effective_date"],
+        "reporting_operative_date": latest["reporting_operative_date"],
+        "monthly_reporting_start": requirements["monthly_reporting_start"],
+        "first_quarterly_report_due": requirements["first_quarterly_report_due"],
+        "industry_memo": requirements["industry_memo"],
+        "industry_memo_url": requirements["industry_memo_url"],
+        "report_format": requirements["report_format"],
+        "availability_warning": (
+            "submission requirements and due dates do not establish that submitted records "
+            "have been published; unpublished values remain UNVERIFIED"
+        ),
+    }
+
+
+def build(root: Path, dmv_reporting_data: Path = DEFAULT_DMV_REPORTING_DATA) -> dict:
     nhtsa = load(root / "nhtsa-sgo.json")
     dmv = load(root / "california-dmv.json")
 
@@ -134,6 +167,7 @@ def build(root: Path) -> dict:
                 dmv
             ),
             "current_permit_snapshot": current_permit_summary(dmv),
+            "current_reporting_regime": current_reporting_regime(dmv_reporting_data),
         },
     }
 
@@ -141,8 +175,11 @@ def build(root: Path) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
+    parser.add_argument(
+        "--dmv-reporting-data", type=Path, default=DEFAULT_DMV_REPORTING_DATA
+    )
     args = parser.parse_args()
-    summary = build(args.root)
+    summary = build(args.root, args.dmv_reporting_data)
     output = args.root / "summary.json"
     output.write_bytes(dump(summary))
     print(
