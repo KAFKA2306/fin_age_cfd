@@ -63,6 +63,30 @@ def latest_statewide_testing_miles(dmv: dict) -> dict:
     return result
 
 
+def current_permit_summary(dmv: dict) -> dict:
+    snapshot = dmv.get("permit_snapshot") or {}
+    categories = snapshot.get("permit_categories") or []
+    if not categories:
+        raise ValueError("California DMV output has no current permit snapshot")
+    result: dict[str, dict] = {}
+    for category in categories:
+        permit_type = str(category.get("permit_type") or "")
+        if not permit_type:
+            raise ValueError("California DMV permit category has no permit_type")
+        holders = category.get("holders")
+        if not isinstance(holders, list):
+            raise ValueError(f"California DMV permit category {permit_type} has no holders list")
+        result[permit_type] = {
+            "effective_at": category["effective_at"],
+            "holder_count": len(holders),
+        }
+    return {
+        "retrieved_at": snapshot["retrieved_at"],
+        "source_url": snapshot["source_url"],
+        "categories": result,
+    }
+
+
 def build(root: Path) -> dict:
     nhtsa = load(root / "nhtsa-sgo.json")
     dmv = load(root / "california-dmv.json")
@@ -109,6 +133,7 @@ def build(root: Path) -> dict:
             "latest_statewide_public_road_testing_miles": latest_statewide_testing_miles(
                 dmv
             ),
+            "current_permit_snapshot": current_permit_summary(dmv),
         },
     }
 

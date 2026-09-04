@@ -11,7 +11,7 @@ Autonomous Vehicles のtesting activityとcrash-report evidenceを、California 
 ## Public dashboard
 
 - latest California statewide public-road testing observation
-- company permit group count in available DMV report data
+- current California permit holder counts for testing with a safety driver / driverless testing / deployment
 - NHTSA ADS report count and reporting-entity count
 - explicit scope warnings: **testing ≠ deployment**, **report count ≠ safety rate**
 
