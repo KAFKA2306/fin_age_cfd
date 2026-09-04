@@ -20,6 +20,16 @@
       "retrieved_at": "2026-08-29",
       "source_url": "https://www.dmv.ca.gov/portal/vehicle-industry-services/autonomous-vehicles/autonomous-vehicle-testing-permit-holders/"
     },
+    "current_reporting_regime": {
+      "availability_warning": "submission requirements and due dates do not establish that submitted records have been published; unpublished values remain UNVERIFIED",
+      "effective_date": "2026-04-28",
+      "first_quarterly_report_due": "2026-09-30",
+      "industry_memo": "AVIM 2026-001A",
+      "industry_memo_url": "https://qr.dmv.ca.gov/portal/file/avim-2026-001-reporting-requirements-pdf/",
+      "monthly_reporting_start": "2026-08-26",
+      "report_format": "csv",
+      "reporting_operative_date": "2026-08-26"
+    },
     "latest_report_year": 2024,
     "latest_statewide_public_road_testing_miles": {
       "period": {
